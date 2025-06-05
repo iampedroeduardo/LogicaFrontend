@@ -8,7 +8,7 @@ export default function AppNavigator() {
   return (
     <NavigationContainer>
       <Stack.Navigator initialRouteName="PaginaInicial">
-        <Stack.Screen name="PaginaInicial" component={PaginaInicial} />
+        <Stack.Screen name="PaginaInicial" component={PaginaInicial} options={{ headerShown: false }}/>
      </Stack.Navigator>
     </NavigationContainer>
   );
