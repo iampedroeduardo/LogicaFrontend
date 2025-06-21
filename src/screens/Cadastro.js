@@ -14,6 +14,7 @@ import DropDownPicker from "react-native-dropdown-picker";
 import { Button, HelperText } from "react-native-paper";
 import instance from "../axios.js";
 import Logo from "../components/Logo.js";
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function Cadastro({ navigation }) {
   async function cadastrarUsuario() {
@@ -28,8 +29,11 @@ export default function Cadastro({ navigation }) {
         dataNascimento,
         email,
         senha,
-      }).then((response)=>{
-        
+      }).then(async (response)=>{
+        await AsyncStorage.setItem('usuario', JSON.stringify(response.data));
+        navigation.navigate("Home");
+      }).catch((error)=>{
+        console.log(error)
       });
     }
   }
@@ -81,8 +85,8 @@ export default function Cadastro({ navigation }) {
       hasErrorsTexto(usuario) ||
       hasErrorsDataDeNascimento() ||
       hasErrorsSenha() ||
-      hasErrorsConfirmaSenha() ||
-      hasErrorsGenero
+      hasErrorsConfirmarSenha() ||
+      hasErrorsGenero()
     );
   };
 
@@ -342,7 +346,7 @@ export default function Cadastro({ navigation }) {
                   setConfirmaSenha(text);
                   setHelperConfirmarSenha(true);
                 }}
-                secureTextEntry={true}
+                secureTextEntry={!showConfirmarSenha}
               ></TextInput>
               <TouchableOpacity
                 onPress={() => setShowConfirmarSenha(!showConfirmarSenha)}
@@ -358,9 +362,7 @@ export default function Cadastro({ navigation }) {
             <HelperText
               style={styles.helper}
               type="error"
-              visible={
-                hasErrorsConfirmarSenha(confirmaSenha) && helperConfirmarSenha
-              }
+              visible={hasErrorsConfirmarSenha() && helperConfirmarSenha}
             >
               A senha não é igual
             </HelperText>
