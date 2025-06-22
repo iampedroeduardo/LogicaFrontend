@@ -33,7 +33,7 @@ export default function PaginaInicial({navigation}) {
         <Button mode='elevated' icon='google' textColor='black' buttonColor='white' style={{width: '80%'}} onPress={() => console.log('Email pressed')}>Continuar com Google</Button>
         <View style={styles.espacamento}>
           <Text>Já tem uma conta?</Text>
-          <Text style={styles.underlined} onClick={() => console.log('Google pressed')}>Entre</Text>
+          <Text style={styles.underlined} onPress={() => navigation.navigate("Entrar")}>Entre</Text>
         </View>
       </View>
 
