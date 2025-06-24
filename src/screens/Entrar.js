@@ -16,8 +16,8 @@ export default function Entrar({navigation}) {
     async function usuarioEntrar() {
         if(CampoPreenchido()) {
             instance.post("/entrar", {
-            usuario,
-            senha,
+            usuario: usuario.trim(),
+            senha: senha.trim(),
         }).then(async (response)=>{
             await AsyncStorage.setItem('usuario', JSON.stringify(response.data));
             navigation.navigate("Home");
@@ -62,7 +62,7 @@ export default function Entrar({navigation}) {
                 marginVertical: 5,
               }}
         />
-        <Text style={styles.label}>Usuário:</Text>
+        <Text style={styles.label}>Usuário ou email:</Text>
         <TextInput
           style={styles.input}
           value={usuario}
@@ -76,7 +76,7 @@ export default function Entrar({navigation}) {
         </HelperText>
 
         <Text style={styles.label}>Senha:</Text>
-        <View style={{ flexDirection: "row", alignItems: "center" }}>
+        <View style={{ flexDirection: "row", alignItems: "center", alignSelf: "center" }}>
           <TextInput
             style={styles.input}
             value={senha}
@@ -102,16 +102,8 @@ export default function Entrar({navigation}) {
         <HelperText type="error" visible={!!erroSenha} style={styles.helper}>
           {erroSenha}
         </HelperText>
-        <View style={{ flexDirection: "row", justifyContent: "center", gap: 20 }}>
-            <Button
-            mode="elevated"
-            textColor="white"
-            buttonColor="#6446db"
-            style={{ width: 150, opacity: !CampoPreenchido() ? 0.4 : 1}}
-            onPress={usuarioEntrar}
-            >
-            Entrar
-            </Button>
+        <View style={{ flexDirection: "row", justifyContent: "center", gap: 35 }}>
+            
             <Button
             mode="elevated"
             textColor="black"
@@ -120,6 +112,15 @@ export default function Entrar({navigation}) {
             onPress={() => navigation.goBack()}
             >
             Voltar
+            </Button>
+            <Button
+            mode="elevated"
+            textColor="white"
+            buttonColor="#6446db"
+            style={{ width: 150, opacity: !CampoPreenchido() ? 0.4 : 1}}
+            onPress={usuarioEntrar}
+            >
+            Entrar
             </Button>
         </View>
       </View>
@@ -153,6 +154,7 @@ const styles = StyleSheet.create({
     elevation: 5,
     borderWidth: 0,
     marginHorizontal: 5,
+    alignSelf: "center",
   },
   label: {
     fontSize: 18,

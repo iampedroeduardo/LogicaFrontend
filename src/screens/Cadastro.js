@@ -22,13 +22,13 @@ export default function Cadastro({ navigation }) {
     if (!hasErrors()) {
       const dataNascimento = new Date(Number(ano), Number(mes), Number(dia));
       instance.post("/cadastro", {
-        nome,
-        sobrenome,
-        usuario,
+        nome: nome.trim(),
+        sobrenome: sobrenome.trim(),
+        usuario: usuario.trim(),
         genero,
         dataNascimento,
-        email,
-        senha,
+        email: email.trim(),
+        senha: senha.trim(),
       }).then(async (response)=>{
         await AsyncStorage.setItem('usuario', JSON.stringify(response.data));
         navigation.navigate("Home");
