@@ -60,48 +60,51 @@ export default function Entrar({navigation}) {
                 width: 100,
                 alignSelf: "center",
                 marginVertical: 5,
+                
               }}
         />
-        <Text style={styles.label}>Usuário ou email:</Text>
-        <TextInput
-          style={styles.input}
-          value={usuario}
-          onChangeText={(text) => {
-            setUsuario(text);
-            setErroUsuario(true);
-        }}
-        />
-        <HelperText type="error" visible={!!erroUsuario} style={styles.helper}>
-          {erroUsuario}
-        </HelperText>
-
-        <Text style={styles.label}>Senha:</Text>
-        <View style={{ flexDirection: "row", alignItems: "center", alignSelf: "center" }}>
-          <TextInput
+        <View style={{marginTop: 20, marginBottom: 20}}>
+          <Text style={styles.label}>Usuário ou email:</Text>
+            <TextInput
             style={styles.input}
-            value={senha}
-            secureTextEntry={!showSenha}
-            onSubmitEditing={usuarioEntrar}
+            value={usuario}
             onChangeText={(text) => {
-              setSenha(text);
-              setErroSenha(true);
+              setUsuario(text);
+              setErroUsuario(true);
           }}
           />
-          <TouchableOpacity
-            onPress={() => setShowSenha(!showSenha)}
-            style={{ marginLeft: -50 }}
-          >
-            <Ionicons
-              name={showSenha ? "eye" : "eye-off"}
-              size={24}
-              color="gray"
-            />
-          </TouchableOpacity>
-        </View>
+          <HelperText type="error" visible={!!erroUsuario} style={styles.helper}>
+            {erroUsuario}
+          </HelperText>
 
-        <HelperText type="error" visible={!!erroSenha} style={styles.helper}>
-          {erroSenha}
-        </HelperText>
+          <Text style={styles.label}>Senha:</Text>
+          <View style={{ flexDirection: "row", alignItems: "center" }}>
+            <TextInput
+              style={styles.input}
+              value={senha}
+              secureTextEntry={!showSenha}
+              onSubmitEditing={usuarioEntrar}
+              onChangeText={(text) => {
+                setSenha(text);
+                setErroSenha(true);
+            }}
+            />
+            <TouchableOpacity
+              onPress={() => setShowSenha(!showSenha)}
+              style={{ marginLeft: -50 }}
+            >
+              <Ionicons
+                name={showSenha ? "eye" : "eye-off"}
+                size={24}
+                color="gray"
+              />
+            </TouchableOpacity>
+          </View>
+
+          <HelperText type="error" visible={!!erroSenha} style={styles.helper}>
+            {erroSenha}
+          </HelperText>
+        </View>
         <View style={{ flexDirection: "row", justifyContent: "center", gap: 35 }}>
             
             <Button
@@ -132,11 +135,12 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     paddingTop: 50,
-    paddingHorizontal: 20,
+    paddingHorizontal: 25,
     backgroundColor: "#EEEEEE",
   },
   input: {
-    width: 300,
+    width: '95%',
+    maxWidth: 380,
     height: 45,
     backgroundColor: "white",
     justifyContent: "center",
@@ -154,7 +158,6 @@ const styles = StyleSheet.create({
     elevation: 5,
     borderWidth: 0,
     marginHorizontal: 5,
-    alignSelf: "center",
   },
   label: {
     fontSize: 18,

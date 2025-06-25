@@ -401,7 +401,8 @@ const styles = StyleSheet.create({
     backgroundColor: "#EEEEEE",
   },
   input: {
-    width: 300,
+    width: '95%',
+    maxWidth: 380,
     height: 45,
     backgroundColor: "white",
     justifyContent: "center",
