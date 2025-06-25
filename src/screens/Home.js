@@ -1,8 +1,24 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useEffect, useState } from "react";
 import { ActivityIndicator, StyleSheet, Text, View } from "react-native";
+import Inicio from "./Inicio";
+import { BottomNavigation } from "react-native-paper";
+
 
 export default function Home({ navigation }) {
+  const [index, setIndex] = useState(0);
+  const [routes] = useState([
+    { key: 'inicio', title: 'Início', focusedIcon: 'home'},
+    { key: 'ranking', title: 'Ranking', focusedIcon: 'trophy' },
+    { key: 'perfil', title: 'Perfil', focusedIcon: 'account-circle' },
+  ]);
+
+  const renderScene = BottomNavigation.SceneMap({
+    inicio: () => <Inicio navigation={navigation} />,
+    ranking: () => <Inicio navigation={navigation} />,
+    perfil: () => <Inicio navigation={navigation} />,
+  });
+
   const [usuario, setUsuario] = useState(null);
   const [loading, setLoading] = useState(true);
 
@@ -32,9 +48,11 @@ export default function Home({ navigation }) {
   }
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.text}>Olá {usuario ? usuario.nome : "Visitante"}!</Text>
-    </View>
+    <BottomNavigation
+      navigationState={{ index, routes }}
+      onIndexChange={setIndex}
+      renderScene={renderScene}
+    />
   );
 }
 
