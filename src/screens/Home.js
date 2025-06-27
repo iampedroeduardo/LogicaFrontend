@@ -52,6 +52,7 @@ export default function Home({ navigation }) {
       navigationState={{ index, routes }}
       onIndexChange={setIndex}
       renderScene={renderScene}
+      barStyle={{ backgroundColor: '#6446DB' }}
     />
   );
 }
