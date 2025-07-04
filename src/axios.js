@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const instance = axios.create({
-  baseURL: 'http://localhost:3000/api',
+  baseURL: 'https://cb0c-45-227-112-7.ngrok-free.app/api',
 //   timeout: 1000,
 //   headers: {'X-Custom-Header': 'foobar'}
 });

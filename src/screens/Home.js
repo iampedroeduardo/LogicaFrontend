@@ -1,12 +1,14 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { useEffect, useState } from "react";
+import { use, useEffect, useState } from "react";
 import { ActivityIndicator, StyleSheet, Text, View } from "react-native";
 import Inicio from "./Inicio";
-import { BottomNavigation } from "react-native-paper";
+import Perfil from "./Perfil";
+import { BottomNavigation, useTheme } from "react-native-paper";
 
 
 export default function Home({ navigation }) {
-  const [index, setIndex] = useState(0);
+  const [index, setIndex] = useState(2);
+  const theme = useTheme();
   const [routes] = useState([
     { key: 'inicio', title: 'Início', focusedIcon: 'home'},
     { key: 'ranking', title: 'Ranking', focusedIcon: 'trophy' },
@@ -15,8 +17,8 @@ export default function Home({ navigation }) {
 
   const renderScene = BottomNavigation.SceneMap({
     inicio: () => <Inicio navigation={navigation} />,
-    ranking: () => <Inicio navigation={navigation} />,
-    perfil: () => <Inicio navigation={navigation} />,
+    ranking: () => <Perfil navigation={navigation} />,
+    perfil: () => <Perfil navigation={navigation} />,
   });
 
   const [usuario, setUsuario] = useState(null);
@@ -52,7 +54,14 @@ export default function Home({ navigation }) {
       navigationState={{ index, routes }}
       onIndexChange={setIndex}
       renderScene={renderScene}
-      barStyle={{ backgroundColor: '#6446DB' }}
+      barStyle={{ backgroundColor: "#6446DB", justifyContent: "center" }}
+      theme={{
+        colors: {
+          onSurfaceVariant: "#EEEEEE", //itens não selecionados cor
+          primary: "#BFECFF", //item selecionado cor (testar no celular!!!!)
+          secondaryContainer: "transparent" //borda itens selecionados cor
+        }
+      }}
     />
   );
 }
@@ -61,7 +70,8 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
         justifyContent: 'center',
-        alignItems: 'center'
+        alignItems: 'center',
+        backgroundColor: "#EEEEEE",
     },
     text: {
         fontSize: 24
