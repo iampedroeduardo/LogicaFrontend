@@ -7,19 +7,13 @@ import { BottomNavigation, useTheme } from "react-native-paper";
 
 
 export default function Home({ navigation }) {
-  const [index, setIndex] = useState(2);
+  const [index, setIndex] = useState(0);
   const theme = useTheme();
   const [routes] = useState([
     { key: 'inicio', title: 'Início', focusedIcon: 'home'},
     { key: 'ranking', title: 'Ranking', focusedIcon: 'trophy' },
     { key: 'perfil', title: 'Perfil', focusedIcon: 'account-circle' },
   ]);
-
-  const renderScene = BottomNavigation.SceneMap({
-    inicio: () => <Inicio navigation={navigation} />,
-    ranking: () => <Perfil navigation={navigation} />,
-    perfil: () => <Perfil navigation={navigation} />,
-  });
 
   const [usuario, setUsuario] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -48,6 +42,12 @@ export default function Home({ navigation }) {
       </View>
     );
   }
+
+  const renderScene = BottomNavigation.SceneMap({
+    inicio: () => <Inicio navigation={navigation} />,
+    ranking: () => <Text>Ranking</Text>, // Componente de Ranking aqui
+    perfil: () => <Perfil navigation={navigation} usuario={usuario} />,
+  });
 
   return (
     <BottomNavigation

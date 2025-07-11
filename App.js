@@ -1,16 +1,24 @@
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { NavigationContainer } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
-import PaginaInicial from "./src/screens/PaginaInicial";
+import { useEffect, useState } from "react";
+import { ActivityIndicator, StyleSheet, View } from "react-native";
+import { DefaultTheme, PaperProvider } from "react-native-paper";
+import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityIcons";
 import Cadastro from "./src/screens/Cadastro";
+import Entrar from "./src/screens/Entrar";
 import Home from "./src/screens/Home";
 import HomeTeste from "./src/screens/HomeTeste";
-import Entrar from "./src/screens/Entrar";
-import { PaperProvider } from "react-native-paper";
-import { useState, useEffect } from "react";
-import AsyncStorage from "@react-native-async-storage/async-storage";
-import { ActivityIndicator, View, StyleSheet } from "react-native";
+import PaginaInicial from "./src/screens/PaginaInicial";
 
 const Stack = createNativeStackNavigator();
+const theme = {
+  ...DefaultTheme, // ou use DarkTheme
+  colors: {
+    ...DefaultTheme.colors,
+    // personalize outras cores aqui se quiser
+  },
+};
 
 export default function AppNavigator() {
   const [usuario, setUsuario] = useState(null);
@@ -36,9 +44,16 @@ export default function AppNavigator() {
   }
 
   return (
-    <PaperProvider>
+    <PaperProvider
+      settings={{
+        icon: (props) => <MaterialCommunityIcons {...props} />,
+      }}
+      theme={theme}
+    >
       <NavigationContainer>
-        <Stack.Navigator initialRouteName={usuario ? "Home" : "PaginaInicial"}>
+        <Stack.Navigator
+          initialRouteName={usuario != null ? "Home" : "PaginaInicial"}
+        >
           <Stack.Screen
             name="PaginaInicial"
             component={PaginaInicial}
@@ -71,12 +86,12 @@ export default function AppNavigator() {
 }
 
 const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        justifyContent: 'center',
-        alignItems: 'center'
-    },
-    text: {
-        fontSize: 24
-    }
-})
+  container: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  text: {
+    fontSize: 24,
+  },
+});

@@ -1,10 +1,9 @@
-import { View, StyleSheet, Pressable, Text} from "react-native";
-import Logo from "../components/Logo";
-import { Ionicons } from "@expo/vector-icons";
-import FontAwesome5 from '@expo/vector-icons/FontAwesome5';
-import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import AntDesign from '@expo/vector-icons/AntDesign';
+import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { LinearGradient } from 'expo-linear-gradient';
+import { Pressable, StyleSheet, Text, View } from "react-native";
+import { Icon } from "react-native-paper";
+import Logo from "../components/Logo";
 
 
 export default function Inicio({ navigation }) {
@@ -12,7 +11,7 @@ export default function Inicio({ navigation }) {
 
     <View style={styles.container}>
           <Logo />
-          <View style={{flexDirection: 'column', justifyContent: 'center', alignItems: 'center',  margin: 20, height: "80%", gap: 25}}>
+          <View style={{flexDirection: 'column', justifyContent: 'center', alignItems: 'center',  marginVertical: 20, height: "80%", gap: 25}}>
             <LinearGradient 
               style={styles.caminho}
               colors={['#BFECFF', '#6446DB']}
@@ -21,7 +20,7 @@ export default function Inicio({ navigation }) {
               >
               {/* acessar trilha aleatória */} 
               <Pressable style={styles.caminhobutton}>
-                <FontAwesome5 name="play" size={55} color="black" />
+                <Icon source="play" size={85} color="black"/>
               </Pressable>
               <View style={styles.caminhotext}>
                 <Text style={styles.titulo}>Iniciar</Text>
@@ -36,7 +35,7 @@ export default function Inicio({ navigation }) {
             >
               {/* Lógica de Programação */}
               <Pressable style={styles.caminhobutton}>
-                <AntDesign name="codesquare" size={58} color="black" />
+                <Icon source="code-braces" size={65} color="black"/>
               </Pressable>
               <View style={styles.caminhotext}>
                 <Text style={styles.titulo}>Lógica de Programação</Text>
@@ -51,7 +50,7 @@ export default function Inicio({ navigation }) {
             >
               {/* Raciocínio Lógico */}
               <Pressable style={styles.caminhobutton}>
-                <MaterialIcons name="calculate" size={70} color="black" />
+                <Icon source="lightbulb-on" size={65} color="black"/>
               </Pressable>
               <View style={styles.caminhotext}>
                 <Text style={styles.titulo}>Raciocínio Lógico</Text>
@@ -67,7 +66,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     paddingTop: 50,
-    paddingHorizontal: 20,
+    paddingHorizontal: 15,
     backgroundColor: "#EEEEEE",
   },
   caminhobutton: {
