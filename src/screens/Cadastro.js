@@ -1,4 +1,5 @@
 import { Ionicons } from "@expo/vector-icons";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useState } from "react";
 import {
   KeyboardAvoidingView,
@@ -14,27 +15,51 @@ import DropDownPicker from "react-native-dropdown-picker";
 import { Button, HelperText } from "react-native-paper";
 import instance from "../axios.js";
 import Logo from "../components/Logo.js";
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useRoute } from '@react-navigation/native';
 
 export default function Cadastro({ navigation }) {
   async function cadastrarUsuario() {
     setHelperGenero(true);
     if (!hasErrors()) {
       const dataNascimento = new Date(Number(ano), Number(mes), Number(dia));
-      instance.post("/cadastro", {
-        nome: nome.trim(),
-        sobrenome: sobrenome.trim(),
-        usuario: usuario.trim(),
-        genero,
-        dataNascimento,
-        email: email.trim(),
-        senha: senha.trim(),
-      }).then(async (response)=>{
-        await AsyncStorage.setItem('usuario', JSON.stringify(response.data));
-        navigation.navigate("Home");
-      }).catch((error)=>{
-        console.log(error)
-      });
+      instance
+        .post("/cadastro", {
+          nome: nome.trim(),
+          usuario: usuario.trim(),
+          genero,
+          dataNascimento,
+          email: email.trim(),
+          senha: senha.trim(),
+        })
+        .then(async (response) => {
+          await AsyncStorage.setItem("usuario", JSON.stringify(response.data));
+          navigation.navigate("Home");
+        })
+        .catch((error) => {
+          console.log(error);
+        });
+    }
+  }
+  async function editarUsuario() {
+    setHelperGenero(true);
+    if (!hasErrors()) {
+      const dataNascimento = new Date(Number(ano), Number(mes), Number(dia));
+      instance
+        .put("/editar", {
+          id: usuarioArmazenado.id,
+          nome: nome.trim(),
+          usuario: usuario.trim(),
+          genero,
+          dataNascimento,
+          email: email.trim(),
+        })
+        .then(async (response) => {
+          await AsyncStorage.setItem("usuario", JSON.stringify(response.data));
+          navigation.navigate("Home");
+        })
+        .catch((error) => {
+          console.log(error);
+        });
     }
   }
 
@@ -78,9 +103,17 @@ export default function Cadastro({ navigation }) {
   };
 
   const hasErrors = () => {
+    if(usuarioArmazenado) {
+      return (
+      hasErrorsTexto(nome) ||
+      hasErrorsEmail() ||
+      hasErrorsTexto(usuario) ||
+      hasErrorsDataDeNascimento() ||
+      hasErrorsGenero()
+    )
+    }
     return (
       hasErrorsTexto(nome) ||
-      hasErrorsTexto(sobrenome) ||
       hasErrorsEmail() ||
       hasErrorsTexto(usuario) ||
       hasErrorsDataDeNascimento() ||
@@ -89,27 +122,49 @@ export default function Cadastro({ navigation }) {
       hasErrorsGenero()
     );
   };
-
+  const route = useRoute();
+  const { usuarioArmazenado } = route.params;
+  console.log(usuarioArmazenado);
   const [open, setOpen] = useState(false);
-  const [genero, setGenero] = useState(null);
+  const [genero, setGenero] = useState(
+    usuarioArmazenado ? usuarioArmazenado.genero : null
+  );
+  console.log(genero);
   const [generos, setGeneros] = useState([
     { label: "Masculino", value: "Masculino" },
     { label: "Feminino", value: "Feminino" },
     { label: "Outro", value: "Outro" },
   ]);
-  const [nome, setNome] = useState("");
-  const [sobrenome, setSobrenome] = useState("");
-  const [email, setEmail] = useState("");
-  const [usuario, setUsuario] = useState("");
+  const [nome, setNome] = useState(
+    usuarioArmazenado ? usuarioArmazenado.nome : ""
+  );
+  console.log(nome)
+  const [email, setEmail] = useState(
+    usuarioArmazenado ? usuarioArmazenado.email : ""
+  );
+  const [usuario, setUsuario] = useState(
+    usuarioArmazenado ? usuarioArmazenado.usuario : ""
+  );
   const [senha, setSenha] = useState("");
   const [confirmaSenha, setConfirmaSenha] = useState("");
-  const [dia, setDia] = useState("");
-  const [mes, setMes] = useState("");
-  const [ano, setAno] = useState("");
+  const [dia, setDia] = useState(
+    usuarioArmazenado
+      ? new Date(usuarioArmazenado.nascimento).getDate().toString()
+      : ""
+  );
+  const [mes, setMes] = useState(
+    usuarioArmazenado
+      ? new Date(usuarioArmazenado.nascimento).getMonth().toString()
+      : ""
+  );
+  const [ano, setAno] = useState(
+    usuarioArmazenado
+      ? new Date(usuarioArmazenado.nascimento).getFullYear().toString()
+      : ""
+  );
   const [helperEmail, setHelperEmail] = useState(false);
   const [helperNome, setHelperNome] = useState(false);
   const [helperUsuario, setHelperUsuario] = useState(false);
-  const [helperSobrenome, setHelperSobrenome] = useState(false);
   const [helperSenha, setHelperSenha] = useState(false);
   const [helperConfirmarSenha, setHelperConfirmarSenha] = useState(false);
   const [helperDataDeNascimento, setHelperDataDeNascimento] = useState(false);
@@ -148,6 +203,7 @@ export default function Cadastro({ navigation }) {
                 setNome(text);
                 setHelperNome(true);
               }}
+              value={nome}
             ></TextInput>
             <HelperText
               style={styles.helper}
@@ -155,23 +211,6 @@ export default function Cadastro({ navigation }) {
               visible={hasErrorsTexto(nome) && helperNome}
             >
               Preencha seu nome
-            </HelperText>
-            <Text style={styles.label}>Sobrenome:</Text>
-
-            <TextInput
-              style={styles.input}
-              onChangeText={(text) => {
-                setSobrenome(text);
-                setHelperSobrenome(true);
-              }}
-            ></TextInput>
-
-            <HelperText
-              style={styles.helper}
-              type="error"
-              visible={hasErrorsTexto(sobrenome) && helperSobrenome}
-            >
-              Preencha seu sobrenome
             </HelperText>
             <Text style={styles.label}>Data de Nascimento:</Text>
             <View style={{ flexDirection: "row", gap: 10 }}>
@@ -182,6 +221,7 @@ export default function Cadastro({ navigation }) {
                   setHelperDataDeNascimento(true);
                   setDia(text);
                 }}
+                value={dia}
               ></TextInput>
 
               <TextInput
@@ -191,6 +231,7 @@ export default function Cadastro({ navigation }) {
                   setHelperDataDeNascimento(true);
                   setMes(text);
                 }}
+                value={mes}
               ></TextInput>
 
               <TextInput
@@ -200,6 +241,7 @@ export default function Cadastro({ navigation }) {
                   setHelperDataDeNascimento(true);
                   setAno(text);
                 }}
+                value={ano}
               ></TextInput>
             </View>
             <HelperText
@@ -280,6 +322,7 @@ export default function Cadastro({ navigation }) {
                 setEmail(text);
                 setHelperEmail(true);
               }}
+              value={email}
             ></TextInput>
 
             <HelperText
@@ -297,6 +340,7 @@ export default function Cadastro({ navigation }) {
                 setUsuario(text);
                 setHelperUsuario(true);
               }}
+              value={usuario}
             ></TextInput>
 
             <HelperText
@@ -307,65 +351,69 @@ export default function Cadastro({ navigation }) {
               Preencha um nome de usuário válido
             </HelperText>
 
-            <Text style={styles.label}>Senha:</Text>
-            <View style={{ flexDirection: "row", alignItems: "center" }}>
-              <TextInput
-                style={styles.input}
-                onChangeText={(text) => {
-                  setSenha(text);
-                  setHelperSenha(true);
-                }}
-                secureTextEntry={!showSenha}
-              ></TextInput>
-              <TouchableOpacity
-                onPress={() => setShowSenha(!showSenha)}
-                style={{ marginLeft: -50 }}
-              >
-                <Ionicons
-                  name={showSenha ? "eye" : "eye-off"}
-                  size={24}
-                  color="gray"
-                />
-              </TouchableOpacity>
-            </View>
-            <HelperText
-              style={styles.helper}
-              type="error"
-              visible={hasErrorsSenha() && helperSenha}
-            >
-              {!hasErrorsSenha() || !helperSenha
-                ? " "
-                : "A senha precisa conter:\n • 8 caracteres\n • 1 letra maiúscula\n • 1 número\n • 1 caractere especia"}
-              l
-            </HelperText>
-            <Text style={styles.label}>Confirmar Senha:</Text>
-            <View style={{ flexDirection: "row", alignItems: "center" }}>
-              <TextInput
-                style={styles.input}
-                onChangeText={(text) => {
-                  setConfirmaSenha(text);
-                  setHelperConfirmarSenha(true);
-                }}
-                secureTextEntry={!showConfirmarSenha}
-              ></TextInput>
-              <TouchableOpacity
-                onPress={() => setShowConfirmarSenha(!showConfirmarSenha)}
-                style={{ marginLeft: -50 }}
-              >
-                <Ionicons
-                  name={showConfirmarSenha ? "eye" : "eye-off"}
-                  size={24}
-                  color="gray"
-                />
-              </TouchableOpacity>
-            </View>
-            <HelperText
-              style={styles.helper}
-              type="error"
-              visible={hasErrorsConfirmarSenha() && helperConfirmarSenha}
-            >
-              A senha não é igual
-            </HelperText>
+            {!usuarioArmazenado && (
+              <View>
+                <Text style={styles.label}>Senha:</Text>
+                <View style={{ flexDirection: "row", alignItems: "center" }}>
+                  <TextInput
+                    style={styles.input}
+                    onChangeText={(text) => {
+                      setSenha(text);
+                      setHelperSenha(true);
+                    }}
+                    secureTextEntry={!showSenha}
+                  ></TextInput>
+                  <TouchableOpacity
+                    onPress={() => setShowSenha(!showSenha)}
+                    style={{ marginLeft: -50 }}
+                  >
+                    <Ionicons
+                      name={showSenha ? "eye" : "eye-off"}
+                      size={24}
+                      color="gray"
+                    />
+                  </TouchableOpacity>
+                </View>
+                <HelperText
+                  style={styles.helper}
+                  type="error"
+                  visible={hasErrorsSenha() && helperSenha}
+                >
+                  {!hasErrorsSenha() || !helperSenha
+                    ? " "
+                    : "A senha precisa conter:\n • 8 caracteres\n • 1 letra maiúscula\n • 1 número\n • 1 caractere especia"}
+                  l
+                </HelperText>
+                <Text style={styles.label}>Confirmar Senha:</Text>
+                <View style={{ flexDirection: "row", alignItems: "center" }}>
+                  <TextInput
+                    style={styles.input}
+                    onChangeText={(text) => {
+                      setConfirmaSenha(text);
+                      setHelperConfirmarSenha(true);
+                    }}
+                    secureTextEntry={!showConfirmarSenha}
+                  ></TextInput>
+                  <TouchableOpacity
+                    onPress={() => setShowConfirmarSenha(!showConfirmarSenha)}
+                    style={{ marginLeft: -50 }}
+                  >
+                    <Ionicons
+                      name={showConfirmarSenha ? "eye" : "eye-off"}
+                      size={24}
+                      color="gray"
+                    />
+                  </TouchableOpacity>
+                </View>
+                <HelperText
+                  style={styles.helper}
+                  type="error"
+                  visible={hasErrorsConfirmarSenha() && helperConfirmarSenha}
+                >
+                  A senha não é igual
+                </HelperText>
+              </View>
+            )}
           </ScrollView>
         </KeyboardAvoidingView>
       </View>
@@ -384,7 +432,7 @@ export default function Cadastro({ navigation }) {
           textColor="white"
           buttonColor="#6446db"
           style={{ width: 150, opacity: hasErrors() ? 0.4 : 1 }}
-          onPress={cadastrarUsuario}
+          onPress={usuarioArmazenado ? editarUsuario : cadastrarUsuario}
         >
           Salvar
         </Button>
@@ -401,7 +449,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#EEEEEE",
   },
   input: {
-    width: '95%',
+    width: "95%",
     maxWidth: 380,
     height: 45,
     backgroundColor: "white",

@@ -95,8 +95,8 @@ export default function Perfil({ navigation, usuario }) {
               style={{ flexDirection: "row", alignItems: "center", gap: 5 }}
             >
               <Text style={styles.titulo}>{usuario.usuario}</Text>
-              <Pressable>
-                <FontAwesome5 name="edit" size={15} color="black" />
+              <Pressable onPress={() => navigation.navigate("Cadastro", {usuarioArmazenado: usuario})}>
+                <Icon source="square-edit-outline" size={30} color="black" />
               </Pressable>
             </View>
             <Text
