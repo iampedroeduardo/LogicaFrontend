@@ -4,6 +4,7 @@ import { ActivityIndicator, StyleSheet, Text, View } from "react-native";
 import Inicio from "./Inicio";
 import Perfil from "./Perfil";
 import { BottomNavigation, useTheme } from "react-native-paper";
+import CadastroAtividade from "./CadastroAtividade";
 
 
 export default function Home({ navigation }) {

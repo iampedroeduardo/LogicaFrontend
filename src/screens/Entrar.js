@@ -6,6 +6,7 @@ import {
   TextInput,
   TouchableOpacity,
   View,
+  Platform
 } from "react-native";
 import { Button, HelperText } from "react-native-paper";
 import instance from "../axios.js";
@@ -20,7 +21,11 @@ export default function Entrar({navigation}) {
             senha: senha.trim(),
         }).then(async (response)=>{
             await AsyncStorage.setItem('usuario', JSON.stringify(response.data));
-            navigation.navigate("Home");
+            if(Platform.OS === 'web'){
+              navigation.navigate("CadastroAtividade")
+            } else{
+              navigation.navigate("Home");
+            }
         }).catch((error)=>{
             if(error.response.data.error) {
                 if(error.response.data.error == "senha"){

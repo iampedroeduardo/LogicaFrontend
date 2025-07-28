@@ -2,10 +2,11 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { NavigationContainer } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { useEffect, useState } from "react";
-import { ActivityIndicator, StyleSheet, View } from "react-native";
+import { ActivityIndicator, Platform, StyleSheet, View } from "react-native";
 import { DefaultTheme, PaperProvider } from "react-native-paper";
 import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityIcons";
 import Cadastro from "./src/screens/Cadastro";
+import CadastroAtividade from "./src/screens/CadastroAtividade";
 import Entrar from "./src/screens/Entrar";
 import Home from "./src/screens/Home";
 import HomeTeste from "./src/screens/HomeTeste";
@@ -52,11 +53,16 @@ export default function AppNavigator() {
     >
       <NavigationContainer>
         <Stack.Navigator
-          initialRouteName={usuario != null ? "Home" : "PaginaInicial"}
+          initialRouteName={usuario != null ? Platform.OS === "web" ? "CadastroAtividade" : "Home" : "PaginaInicial"}
         >
           <Stack.Screen
             name="PaginaInicial"
             component={PaginaInicial}
+            options={{ headerShown: false }}
+          />
+          <Stack.Screen
+            name="CadastroAtividade"
+            component={CadastroAtividade}
             options={{ headerShown: false }}
           />
           <Stack.Screen

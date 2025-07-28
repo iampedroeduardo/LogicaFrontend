@@ -15,7 +15,7 @@ import DropDownPicker from "react-native-dropdown-picker";
 import { Button, HelperText } from "react-native-paper";
 import instance from "../axios.js";
 import Logo from "../components/Logo.js";
-import { useRoute } from '@react-navigation/native';
+import { useRoute } from "@react-navigation/native";
 
 export default function Cadastro({ navigation }) {
   async function cadastrarUsuario() {
@@ -33,7 +33,11 @@ export default function Cadastro({ navigation }) {
         })
         .then(async (response) => {
           await AsyncStorage.setItem("usuario", JSON.stringify(response.data));
-          navigation.navigate("Home");
+          if (Platform.OS === "web") {
+            navigation.navigate("CadastroAtividade");
+          } else {
+            navigation.navigate("Home");
+          }
         })
         .catch((error) => {
           console.log(error);
@@ -103,14 +107,14 @@ export default function Cadastro({ navigation }) {
   };
 
   const hasErrors = () => {
-    if(usuarioArmazenado) {
+    if (usuarioArmazenado) {
       return (
-      hasErrorsTexto(nome) ||
-      hasErrorsEmail() ||
-      hasErrorsTexto(usuario) ||
-      hasErrorsDataDeNascimento() ||
-      hasErrorsGenero()
-    )
+        hasErrorsTexto(nome) ||
+        hasErrorsEmail() ||
+        hasErrorsTexto(usuario) ||
+        hasErrorsDataDeNascimento() ||
+        hasErrorsGenero()
+      );
     }
     return (
       hasErrorsTexto(nome) ||
@@ -123,8 +127,11 @@ export default function Cadastro({ navigation }) {
     );
   };
   const route = useRoute();
-  const { usuarioArmazenado } = route.params;
-  console.log(usuarioArmazenado);
+  let usuarioArmazenado = null;
+  if(route.params) {
+    usuarioArmazenado  = route.params.usuarioArmazenado;
+    //console.log(usuarioArmazenado);
+  }
   const [open, setOpen] = useState(false);
   const [genero, setGenero] = useState(
     usuarioArmazenado ? usuarioArmazenado.genero : null
@@ -138,7 +145,7 @@ export default function Cadastro({ navigation }) {
   const [nome, setNome] = useState(
     usuarioArmazenado ? usuarioArmazenado.nome : ""
   );
-  console.log(nome)
+  console.log(nome);
   const [email, setEmail] = useState(
     usuarioArmazenado ? usuarioArmazenado.email : ""
   );
