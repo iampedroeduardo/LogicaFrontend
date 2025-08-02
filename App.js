@@ -11,6 +11,7 @@ import Entrar from "./src/screens/Entrar";
 import Home from "./src/screens/Home";
 import HomeTeste from "./src/screens/HomeTeste";
 import PaginaInicial from "./src/screens/PaginaInicial";
+import Teste from "./src/screens/Teste"
 
 const Stack = createNativeStackNavigator();
 const theme = {
@@ -76,8 +77,8 @@ export default function AppNavigator() {
             options={{ headerShown: false }}
           />
           <Stack.Screen
-            name="HomeTeste"
-            component={HomeTeste}
+            name="Teste"
+            component={Teste}
             options={{ headerShown: false }}
           />
           <Stack.Screen
