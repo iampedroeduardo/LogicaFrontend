@@ -4,6 +4,7 @@ import { Appbar, Menu, Divider, Icon, Button } from "react-native-paper";
 import Logo from "../components/Logo.js";
 import { LinearGradient } from "expo-linear-gradient";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import Window from "../components/Window.js";
 
 const imagensPerfil = {
   preto_none: require("../../assets/images/perfil_preto_none.png"),
@@ -39,7 +40,7 @@ const imagensPerfil = {
 export default function CadastroAtividade({ navigation }) {
   const [visible, setVisible] = useState(false);
   const [usuario, setUsuario] = useState(null);
-  const [bemVindo, setBemVindo] = useState(true)
+  const [windows, setWindows] = useState([]);
   const openMenu = () => setVisible(true);
   const closeMenu = () => setVisible(false);
 
@@ -61,6 +62,22 @@ export default function CadastroAtividade({ navigation }) {
 
   if (!usuario) {
     return null; // ou um componente de loading
+  }
+
+  function newWindow(type){
+    const window = {
+      type,
+      nome: type==="codigo" ? "Algoritmo" : type==="multiplaEscolha" ? "Múltipla Escolha" : "Minhas Questões",
+      descricao: "", 
+      script: "",
+      errosLacuna: [],
+      gabarito: "",
+      opcao1: "",
+      opcao2: "",
+      opcao3: "",
+      opcao4:""
+    }
+    setWindows(prev => [...prev, window]);
   }
 
   const imagemKey = `${usuario.cor.toLowerCase()}_${usuario.acessorio.toLowerCase()}`;
@@ -145,7 +162,7 @@ export default function CadastroAtividade({ navigation }) {
       <View style={styles.area}>
         {/* icones e texto incial */}
         {
-          bemVindo && (<View>
+          windows.length === 0 ? (<View style={{display: "flex", flexDirection: "column", alignItems: "center"}}>
           <Image
             source={require("../../assets/images/axolote_png.png")}
             style={styles.axolote}
@@ -156,30 +173,32 @@ export default function CadastroAtividade({ navigation }) {
           <Text style={styles.bemvindoText}>
             Toda grande jornada começa com a primeira questão!
           </Text>
-        </View>)
+        </View>) : windows.map((window, index) => <Window key={index} window={window}/>)
         }
         
 
         {/* botões de navegação */}
         <View style={styles.buttons}>
-          <Pressable style={styles.button}>
+          <Pressable style={styles.button} onPress={()=>{newWindow("codigo")}}>
             <View style={styles.iconButton}>
               <Icon source="code-braces" size={20} color="black" />
             </View>
             <Text>Novo Código</Text>
           </Pressable>
-          <Pressable style={styles.button}>
+          <Pressable style={styles.button} onPress={()=>{newWindow("multiplaEscolha")}}>
             <View style={styles.iconButton}>
               <Icon source="alphabetical" size={20} color="black" />
             </View>
             <Text>Múltipla Escolha</Text>
+          </Pressable> 
+          <Pressable style={styles.button} onPress={()=>{newWindow("minhasQuestoes")}}>
+            <View style={styles.iconButton}>
+              <Icon source="format-list-bulleted-square" size={20} color="black" />
+            </View>
+            <Text>Minhas Questões</Text>
           </Pressable>
-
         </View>
       </View>
-      {/* <Pressable>
-              <Icon source="lightbulb-on" size={65} color="black"/>
-          </Pressable> */}
     </View>
   );
 }
@@ -256,9 +275,9 @@ const styles = StyleSheet.create({
   buttons:{
     display: "flex",
     flexDirection: "row",
-    gap: 10,
-    position: fixed,
-    bottom: 10,
+    gap: 15,
+    position: "fixed",
+    bottom: 50,
   },
   button: {
     padding: 10,
