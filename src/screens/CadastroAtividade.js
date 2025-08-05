@@ -1,5 +1,12 @@
 import React, { useEffect, useState } from "react";
-import { StyleSheet, View, Text, Image, Pressable } from "react-native";
+import {
+  StyleSheet,
+  View,
+  Text,
+  Image,
+  Pressable,
+  useWindowDimensions,
+} from "react-native";
 import { Appbar, Menu, Divider, Icon, Button } from "react-native-paper";
 import Logo from "../components/Logo.js";
 import { LinearGradient } from "expo-linear-gradient";
@@ -43,6 +50,7 @@ export default function CadastroAtividade({ navigation }) {
   const [windows, setWindows] = useState([]);
   const openMenu = () => setVisible(true);
   const closeMenu = () => setVisible(false);
+  const { width, height } = useWindowDimensions();
 
   useEffect(() => {
     async function getUsuario() {
@@ -64,20 +72,108 @@ export default function CadastroAtividade({ navigation }) {
     return null; // ou um componente de loading
   }
 
-  function newWindow(type){
-    const window = {
+  function newWindow(type) {
+    const windowWidth = 300;
+    const windowHeight = 500;
+    const margin = 20;
+    const maxAttempts = 100;
+    let attempts = 0;
+
+    // Gera um ID único baseado no timestamp
+    const newId = Date.now();
+
+    // Posição inicial padrão
+    let newX = margin;
+    let newY = margin;
+    let positionFound = windows.length === 0;
+
+    // Tenta encontrar posição vazia
+    while (!positionFound && attempts < maxAttempts) {
+      attempts++;
+      let hasCollision = false;
+
+      for (const existingWindow of windows) {
+        const existingX = existingWindow.x || margin;
+        const existingY = existingWindow.y || margin;
+        const existingHeight = existingWindow.closed ? 100 : 500;
+
+        if (
+          checkCollision(
+            { x: newX, y: newY, width: windowWidth, height: windowHeight },
+            {
+              x: existingX,
+              y: existingY,
+              width: windowWidth,
+              height: existingHeight,
+            },
+            margin
+          )
+        ) {
+          hasCollision = true;
+          break;
+        }
+      }
+
+      if (!hasCollision) {
+        positionFound = true;
+      } else {
+        // Padrão de posicionamento em espiral
+        newX += windowWidth / 2;
+        if (newX + windowWidth > width - margin) {
+          newX = margin;
+          newY += windowHeight / 2;
+        }
+        if (newY + windowHeight > height - margin) {
+          newY = margin;
+        }
+      }
+    }
+
+    const newWindow = {
+      id: newId,
       type,
-      nome: type==="codigo" ? "Algoritmo" : type==="multiplaEscolha" ? "Múltipla Escolha" : "Minhas Questões",
-      descricao: "", 
+      nome: getWindowTitle(type),
+      descricao: "",
       script: "",
       errosLacuna: [],
       gabarito: "",
       opcao1: "",
       opcao2: "",
       opcao3: "",
-      opcao4:""
-    }
-    setWindows(prev => [...prev, window]);
+      opcao4: "",
+      x: newX,
+      y: newY,
+      closed: false,
+    };
+
+    setWindows((prev) => [...prev, newWindow]);
+  }
+
+  // Funções auxiliares
+  function checkCollision(rect1, rect2, padding = 0) {
+    return (
+      rect1.x < rect2.x + rect2.width + padding &&
+      rect1.x + rect1.width + padding > rect2.x &&
+      rect1.y < rect2.y + rect2.height + padding &&
+      rect1.y + rect1.height + padding > rect2.y
+    );
+  }
+
+  function getWindowTitle(type) {
+    const titles = {
+      codigo: "Algoritmo",
+      multiplaEscolha: "Múltipla Escolha",
+      minhasQuestoes: "Minhas Questões",
+    };
+    return titles[type] || "Nova Janela";
+  }
+
+  function updateWindow(updatedWindow) {
+    setWindows((prevWindows) =>
+      prevWindows.map((w) =>
+        w.id === updatedWindow.id ? { ...w, ...updatedWindow } : w
+      )
+    );
   }
 
   const imagemKey = `${usuario.cor.toLowerCase()}_${usuario.acessorio.toLowerCase()}`;
@@ -160,40 +256,75 @@ export default function CadastroAtividade({ navigation }) {
         </Menu>
       </Appbar.Header>
       <View style={styles.area}>
-        {/* icones e texto incial */}
-        {
-          windows.length === 0 ? (<View style={{display: "flex", flexDirection: "column", alignItems: "center"}}>
-          <Image
-            source={require("../../assets/images/axolote_png.png")}
-            style={styles.axolote}
-          ></Image>
-          <Text style={styles.bemvindoText}>
-            {usuario.genero === "Feminino" ? "Bem vinda!" : "Bem vindo!"}
-          </Text>
-          <Text style={styles.bemvindoText}>
-            Toda grande jornada começa com a primeira questão!
-          </Text>
-        </View>) : windows.map((window, index) => <Window key={index} window={window}/>)
-        }
-        
+        {/* mascote e texto incial */}
+        {windows.length === 0 ? (
+          <View
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+            }}
+          >
+            <Image
+              source={require("../../assets/images/axolote_png.png")}
+              style={styles.axolote}
+            ></Image>
+            <Text style={styles.bemvindoText}>
+              {usuario.genero === "Feminino" ? "Bem vinda!" : "Bem vindo!"}
+            </Text>
+            <Text style={styles.bemvindoText}>
+              Toda grande jornada começa com a primeira questão!
+            </Text>
+          </View>
+        ) : (
+          windows.map((window, index) => (
+            <Window
+              key={index}
+              window={window}
+              updateWindow={updateWindow}
+              deleteWindow={() => {
+                setWindows((prev) => prev.filter((w) => w.id !== window.id));
+              }}
+            />
+          ))
+        )}
 
         {/* botões de navegação */}
         <View style={styles.buttons}>
-          <Pressable style={styles.button} onPress={()=>{newWindow("codigo")}}>
+          <Pressable
+            style={styles.button}
+            onPress={() => {
+              newWindow("codigo");
+            }}
+          >
             <View style={styles.iconButton}>
               <Icon source="code-braces" size={20} color="black" />
             </View>
             <Text>Novo Código</Text>
           </Pressable>
-          <Pressable style={styles.button} onPress={()=>{newWindow("multiplaEscolha")}}>
+          <Pressable
+            style={styles.button}
+            onPress={() => {
+              newWindow("multiplaEscolha");
+            }}
+          >
             <View style={styles.iconButton}>
               <Icon source="alphabetical" size={20} color="black" />
             </View>
             <Text>Múltipla Escolha</Text>
-          </Pressable> 
-          <Pressable style={styles.button} onPress={()=>{newWindow("minhasQuestoes")}}>
+          </Pressable>
+          <Pressable
+            style={styles.button}
+            onPress={() => {
+              newWindow("minhasQuestoes");
+            }}
+          >
             <View style={styles.iconButton}>
-              <Icon source="format-list-bulleted-square" size={20} color="black" />
+              <Icon
+                source="format-list-bulleted-square"
+                size={20}
+                color="black"
+              />
             </View>
             <Text>Minhas Questões</Text>
           </Pressable>
@@ -272,7 +403,7 @@ const styles = StyleSheet.create({
     textAlign: "center",
     paddingHorizontal: 30,
   },
-  buttons:{
+  buttons: {
     display: "flex",
     flexDirection: "row",
     gap: 15,
@@ -308,6 +439,5 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.25,
     shadowRadius: 3.84,
     elevation: 5,
-  }
-  
+  },
 });

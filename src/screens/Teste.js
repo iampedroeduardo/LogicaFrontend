@@ -1,61 +1,55 @@
-import React, { useRef } from "react";
-import { View, PanResponder, Animated, StyleSheet } from "react-native";
+import React, { useState } from 'react';
+import { View, Text, TouchableOpacity, LayoutAnimation, StyleSheet } from 'react-native';
 
-const Teste = () => {
-  const pan = useRef(new Animated.ValueXY()).current;
+export default function DescricaoToggle() {
+  const [aberto, setAberto] = useState(false);
 
-  const panResponder = useRef(
-    PanResponder.create({
-      onMoveShouldSetPanResponder: () => true,
-      onPanResponderGrant: () => {
-        pan.setOffset({
-          x: pan.x._value,
-          y: pan.y._value,
-        });
-        pan.setValue({ x: 0, y: 0 });
-      },
-      onPanResponderMove: (e, gestureState) => {
-        let newX = gestureState.dx + pan.x._offset;
-        let newY = gestureState.dy + pan.y._offset;
-
-        // Definindo os limites do movimento
-        const MIN_X = 0;
-        const MAX_X = 300;
-        const MIN_Y = 0;
-        const MAX_Y = 500;
-
-        // Limitando os valores dentro da faixa
-        newX = Math.max(MIN_X, Math.min(newX, MAX_X));
-        newY = Math.max(MIN_Y, Math.min(newY, MAX_Y));
-
-        // Atualiza manualmente os valores animados
-        pan.setValue({
-          x: newX - pan.x._offset,
-          y: newY - pan.y._offset,
-        });
-      },
-      onPanResponderRelease: () => {
-        pan.flattenOffset();
-      },
-    })
-  ).current;
+  const toggleDescricao = () => {
+    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+    setAberto(!aberto);
+  };
 
   return (
-    <Animated.View
-      style={[styles.box, pan.getLayout()]}
-      {...panResponder.panHandlers}
-    />
+    <View style={styles.container}>
+      <TouchableOpacity style={styles.botao} onPress={toggleDescricao}>
+        <Text style={styles.botaoTexto}>
+          {aberto ? 'Ocultar Descrição' : 'Mostrar Descrição'}
+        </Text>
+      </TouchableOpacity>
+
+      {aberto && (
+        <View style={styles.descricao}>
+          <Text style={styles.texto}>
+            O algoritmo tem o objetivo de verificar se o usuário é maior de idade e retornar uma mensagem diferente para cada caso, se ele for maior de idade e se ele não for maior de idade.
+          </Text>
+        </View>
+      )}
+    </View>
   );
-};
+}
 
 const styles = StyleSheet.create({
-  box: {
-    width: 100,
-    height: 100,
-    backgroundColor: "tomato",
-    position: "absolute",
-    borderRadius: 10,
+  container: {
+    margin: 20,
+    padding: 10,
+  },
+  botao: {
+    backgroundColor: '#4B70E2',
+    padding: 10,
+    borderRadius: 8,
+  },
+  botaoTexto: {
+    color: '#fff',
+    fontWeight: 'bold',
+    textAlign: 'center',
+  },
+  descricao: {
+    marginTop: 10,
+    padding: 10,
+    backgroundColor: '#eef',
+    borderRadius: 8,
+  },
+  texto: {
+    fontSize: 14,
   },
 });
-
-export default Teste;
