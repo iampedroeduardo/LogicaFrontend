@@ -17,7 +17,13 @@ export default function Window({ window, updateWindow, deleteWindow }) {
   ).current;
   const { width, height } = useWindowDimensions();
   const [closed, setClosed] = useState(false);
-  const [aberto, setAberto] = useState(false);
+  const [abertoDesc, setAbertoDesc] = useState(false);
+  const [abertoLacuna, setAbertoLacuna] = useState(false);
+  const [abertoErro, setAbertoErro] = useState(false);
+  const [abertoA, setAbertoA] = useState(false);
+  const [abertoB, setAbertoB] = useState(false);
+  const [abertoC, setAbertoC] = useState(false);
+  const [abertoD, setAbertoD] = useState(false);
 
   const panResponder = useMemo(
     () =>
@@ -51,8 +57,8 @@ export default function Window({ window, updateWindow, deleteWindow }) {
           pan.flattenOffset();
           updateWindow({
             ...window,
-            x: pan.x._value + (window.x || 0),
-            y: pan.y._value + (window.y || 0),
+            x: pan.x._value,
+            y: pan.y._value,
           });
         },
       }),
@@ -100,56 +106,172 @@ export default function Window({ window, updateWindow, deleteWindow }) {
             <View style={styles.popupView}>
               <Pressable
                 style={styles.popupIcon}
-                onPress={
-                  aberto
-                    ? () => {
-                        setAberto(aberto);
-                      }
-                    : () => {
-                        setAberto(!aberto);
-                      }
-                }
+                onPress={() => {setAbertoDesc(!abertoDesc) ; setAbertoLacuna(false) ; setAbertoErro(false)}}
               >
                 <Icon source="pen" size={20} color="black" />
               </Pressable>
-              {aberto && (
+              {abertoDesc && (
                 <View style={styles.viewDesc}>
-                  <TextInput style={{ width: 100 }}></TextInput>
+                  <Text>Descrição</Text>
+                  <TextInput
+                    multiline={true}
+                    numberOfLines={10}
+                    placeholder="Escreva aqui a descrição do algoritmo..."
+                    style={{ 
+                        height: 200,
+                        width: 230,
+                        textAlignVertical: 'top',
+                        backgroundColor: "#EEEEEE",
+                        padding: 10,
+                        borderRadius: 15,
+                        // outlineStyle: 'none',
+                    }}
+                  />
                 </View>
               )}
+              {abertoDesc && (<View style={{height: 160}}></View>)}
             </View>
             <View style={styles.popupView}>
-              <View style={styles.popupIcon}>
+              <Pressable style={styles.popupIcon} onPress={() => {setAbertoErro(!abertoErro) ; setAbertoLacuna(false) ; setAbertoDesc(false)}}>
                 <Icon source="alert" size={20} color="black" />
-              </View>
+              </Pressable>
+              {abertoErro &&(
+                <View style={styles.viewDesc}>
+                  <Text>Encontre o Erro</Text>
+                  <View
+                    style={{ 
+                        height: 137.6,
+                        width: 230,
+                        backgroundColor: "#EEEEEE",
+                        padding: 10,
+                        borderRadius: 15,
+                    }}
+                  ></View>
+                </View>
+              )}
+              {abertoErro && (<View style={{height: 160}}></View>)}
             </View>
             <View style={styles.popupView}>
-              <View style={styles.popupIcon}>
+              <Pressable style={styles.popupIcon} onPress={() => {setAbertoLacuna(!abertoLacuna) ; setAbertoErro(false) ; setAbertoDesc(false)}}>
                 <Icon source="format-quote-close" size={20} color="black" />
-              </View>
+              </Pressable>
+              {abertoLacuna && (
+                <View style={styles.viewDesc}>
+                  <Text>Complete o código</Text>
+                  <View
+                    style={{ 
+                        height: 137.6,
+                        width: 230,
+                        backgroundColor: "#EEEEEE",
+                        padding: 10,
+                        borderRadius: 15,
+                    }}
+                  ></View>
+                </View>
+              )}
             </View>
           </View>
         ) : (
           <View style={styles.questionPopups}>
             <View style={styles.popupView}>
-              <View style={styles.popupIcon}>
+              <Pressable style={styles.popupIcon} onPress={() => setAbertoA(!abertoA)}>
                 <Icon source="alpha-a" size={20} color="black" />
-              </View>
+              </Pressable>
+              {abertoA && (
+                <View style={styles.viewOpcoes}>
+                  <View>
+                      <TextInput
+                      placeholder="Escreva aqui a alternativa A..."
+                      style={{ 
+                          height: 40,
+                          width: 230,
+                          backgroundColor: "white",
+                          padding: 10,
+                          borderRadius: 15,
+                          // outlineStyle: 'none',
+                      }}
+                    />
+                  </View>
+                <Pressable style={styles.opcaoCorreta}>
+                  <Icon source="check" size={20} color="black" />
+                </Pressable>
+                </View>
+              )}
             </View>
             <View style={styles.popupView}>
-              <View style={styles.popupIcon}>
+              <Pressable style={styles.popupIcon} onPress={() => setAbertoB(!abertoB)}>
                 <Icon source="alpha-b" size={20} color="black" />
-              </View>
+              </Pressable>
+              {abertoB && (
+                <View style={styles.viewOpcoes}>
+                  <View>
+                      <TextInput
+                      placeholder="Escreva aqui a alternativa B..."
+                      style={{ 
+                          height: 40,
+                          width: 230,
+                          backgroundColor: "white",
+                          padding: 10,
+                          borderRadius: 15,
+                          // outlineStyle: 'none',
+                      }}
+                    />
+                  </View>
+                <Pressable style={styles.opcaoCorreta}>
+                  <Icon source="check" size={20} color="black" />
+                </Pressable>
+                </View>
+              )}
             </View>
             <View style={styles.popupView}>
-              <View style={styles.popupIcon}>
+              <Pressable style={styles.popupIcon} onPress={() => setAbertoC(!abertoC)}>
                 <Icon source="alpha-c" size={20} color="black" />
-              </View>
+              </Pressable>
+              {abertoC && (
+                <View style={styles.viewOpcoes}>
+                  <View>
+                      <TextInput
+                      placeholder="Escreva aqui a alternativa C..."
+                      style={{ 
+                          height: 40,
+                          width: 230,
+                          backgroundColor: "white",
+                          padding: 10,
+                          borderRadius: 15,
+                          // outlineStyle: 'none',
+                      }}
+                    />
+                  </View>
+                <Pressable style={styles.opcaoCorreta}>
+                  <Icon source="check" size={20} color="black" />
+                </Pressable>
+                </View>
+              )}
             </View>
             <View style={styles.popupView}>
-              <View style={styles.popupIcon}>
+              <Pressable style={styles.popupIcon} onPress={() => setAbertoD(!abertoD)}>
                 <Icon source="alpha-d" size={20} color="black" />
-              </View>
+              </Pressable>
+              {abertoD && (
+                <View style={styles.viewOpcoes}>
+                  <View>
+                      <TextInput
+                      placeholder="Escreva aqui a alternativa D..."
+                      style={{ 
+                          height: 40,
+                          width: 230,
+                          backgroundColor: "white",
+                          padding: 10,
+                          borderRadius: 15,
+                          // outlineStyle: 'none',
+                      }}
+                    />
+                  </View>
+                <Pressable style={styles.opcaoCorreta}>
+                  <Icon source="check" size={20} color="black" />
+                </Pressable>
+                </View>
+              )}
             </View>
           </View>
         ))}
@@ -264,9 +386,62 @@ const styles = StyleSheet.create({
     },
     shadowOpacity: 0.25,
     shadowRadius: 3.84,
-    elevation: 5,
+    elevation: 6, 
+    width: 40,
+    height: 40,
+    zIndex: 1,
   },
   viewDesc: {
-    backgroundColor: "black"
+    position: "absolute",
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+    gap: 20,
+    width: 250,
+    height: 200,
+    backgroundColor: "white", 
+    padding: 12,
+    borderRadius: 15,
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+  },
+  viewOpcoes: {
+    position: "absolute",
+    display: "flex",
+    flexDirection: "row",
+    gap: 10,
+    backgroundColor: "white", 
+    height: 40,
+    width: 270,
+    borderRadius: 15,
+    paddingLeft: 40,
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+  },
+  opcaoCorreta: {
+    padding: 10,
+    backgroundColor: "#6446DB",
+    borderRadius: 15,
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 6, 
+    width: 40,
+    height: 40,
+    zIndex: 1,
   }
 });
