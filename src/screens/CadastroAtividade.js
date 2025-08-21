@@ -137,10 +137,12 @@ export default function CadastroAtividade({ navigation }) {
       script: "",
       errosLacuna: [],
       gabarito: "",
+      pergunta: "",
       opcao1: "",
       opcao2: "",
       opcao3: "",
       opcao4: "",
+      opcaoCorreta: "",
       x: newX,
       y: newY,
       closed: false,
@@ -282,8 +284,8 @@ export default function CadastroAtividade({ navigation }) {
               key={index}
               window={window}
               updateWindow={updateWindow}
-              deleteWindow={() => {
-                setWindows((prev) => prev.filter((w) => w.id !== window.id));
+              deleteWindow={(id) => {
+                setWindows((prev) => prev.filter((w) => w.id !== id));
               }}
             />
           ))
@@ -327,6 +329,21 @@ export default function CadastroAtividade({ navigation }) {
               />
             </View>
             <Text>Minhas Questões</Text>
+          </Pressable>
+          <Pressable
+            style={styles.button}
+            onPress={() => {
+              newWindow("minhasQuestoes");
+            }}
+          >
+            <View style={styles.iconButton}>
+              <Icon
+                source="check"
+                size={20}
+                color="black"
+              />
+            </View>
+            <Text>Salvar</Text>
           </Pressable>
         </View>
       </View>
