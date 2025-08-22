@@ -6,8 +6,18 @@ import {
   Image,
   Pressable,
   useWindowDimensions,
+  ScrollView
 } from "react-native";
-import { Appbar, Menu, Divider, Icon, Button } from "react-native-paper";
+import {
+  Appbar,
+  Menu,
+  Divider,
+  Icon,
+  Button,
+  Dialog,
+  Portal,
+  Checkbox,
+} from "react-native-paper";
 import Logo from "../components/Logo.js";
 import { LinearGradient } from "expo-linear-gradient";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -46,6 +56,7 @@ const imagensPerfil = {
 
 export default function CadastroAtividade({ navigation }) {
   const [visible, setVisible] = useState(false);
+  const [dialogVisible, setDialogVisible] = useState(false);
   const [usuario, setUsuario] = useState(null);
   const [windows, setWindows] = useState([]);
   const openMenu = () => setVisible(true);
@@ -146,6 +157,7 @@ export default function CadastroAtividade({ navigation }) {
       x: newX,
       y: newY,
       closed: false,
+      salvar: true,
     };
 
     setWindows((prev) => [...prev, newWindow]);
@@ -284,8 +296,8 @@ export default function CadastroAtividade({ navigation }) {
               key={index}
               window={window}
               updateWindow={updateWindow}
-              deleteWindow={(id) => {
-                setWindows((prev) => prev.filter((w) => w.id !== id));
+              deleteWindow={() => {
+                setWindows((prev) => prev.filter((w) => w.id !== window.id));
               }}
             />
           ))
@@ -330,23 +342,110 @@ export default function CadastroAtividade({ navigation }) {
             </View>
             <Text>Minhas Questões</Text>
           </Pressable>
-          <Pressable
-            style={styles.button}
-            onPress={() => {
-              newWindow("minhasQuestoes");
-            }}
-          >
-            <View style={styles.iconButton}>
-              <Icon
-                source="check"
-                size={20}
-                color="black"
-              />
-            </View>
-            <Text>Salvar</Text>
-          </Pressable>
+          {windows.filter((x) => x.type !== "minhasQuestoes").length > 0 && (
+            <Pressable
+              style={styles.button}
+              onPress={() => {
+                setDialogVisible(true);
+              }}
+            >
+              <View style={styles.iconButton}>
+                <Icon source="check" size={20} color="black" />
+              </View>
+              <Text>Salvar</Text>
+            </Pressable>
+          )}
         </View>
       </View>
+      <Portal>
+        <Dialog
+          visible={dialogVisible}
+          onDismiss={() => setDialogVisible(false)}
+          style={styles.dialog}
+        >
+          <View style={styles.dialogContent}>
+            <View style={styles.dialogTitle}>
+              <Text style={{ fontSize: 16, fontWeight: "bold" }}>
+                Finalização
+              </Text>
+            </View>
+            <View style={styles.dialogDescription}>
+              <Text style={{ fontSize: 14 }}>
+                Selecione as questões para enviar para avaliação, as demais
+                serão salvas como rascunhos.
+              </Text>
+            </View>
+
+            {/* Adicione ScrollView aqui */}
+            <ScrollView
+              style={styles.dialogQuestionsScroll}
+              contentContainerStyle={styles.dialogQuestionsContent}
+            >
+              {windows
+                .filter((x) => x.type !== "minhasQuestoes")
+                .map((question) => (
+                  <Pressable
+                    key={question.id} // IMPORTANTE: Adicione key aqui
+                    onPress={() => {
+                      setWindows((prevWindows) =>
+                        prevWindows.map((w) =>
+                          w.id === question.id ? { ...w, salvar: !w.salvar } : w
+                        )
+                      );
+                    }}
+                    style={styles.dialogQuestion}
+                  >
+                    <Text style={{ fontSize: 14, marginRight: 10, flex: 1 }}>
+                      {question.nome}
+                    </Text>
+                    <View
+                      style={{
+                        width: 24,
+                        height: 24,
+                        borderWidth: 2,
+                        borderColor: "#6446db",
+                        backgroundColor: question.salvar
+                          ? "#6446db"
+                          : "transparent",
+                        borderRadius: 4,
+                        justifyContent: "center",
+                        alignItems: "center",
+                      }}
+                    >
+                      {question.salvar && (
+                        <Icon source="check" size={16} color="white" />
+                      )}
+                    </View>
+                  </Pressable>
+                ))}
+            </ScrollView>
+
+            <View style={styles.dialogButtons}>
+              <Button
+                mode="elevated"
+                textColor="black"
+                buttonColor="#BFECFF"
+                style={{ minWidth: 100 }}
+                onPress={() => setDialogVisible(false)}
+              >
+                Cancelar
+              </Button>
+              <Button
+                mode="elevated"
+                textColor="black"
+                buttonColor="#6446db"
+                style={{ minWidth: 100 }}
+                onPress={() => {
+                  // salvar();
+                  setDialogVisible(false);
+                }}
+              >
+                Salvar
+              </Button>
+            </View>
+          </View>
+        </Dialog>
+      </Portal>
     </View>
   );
 }
@@ -456,5 +555,71 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.25,
     shadowRadius: 3.84,
     elevation: 5,
+  },
+  dialog: {
+    backgroundColor: "#6446DB",
+    alignSelf: "center",
+    borderRadius: 15,
+    width: "90%",
+    maxWidth: 500,
+    margin: 0, // Remove margens padrão
+    padding: 0, // Remove padding padrão
+  },
+  dialogContent: {
+    backgroundColor: "white",
+    borderRadius: 10,
+    margin: 10, // Mantém a borda roxa visível
+    overflow: "hidden",
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
+  },
+  dialogTitle: {
+    padding: 8,
+    backgroundColor: "#BFECFF",
+    width: 100,
+    alignItems: "center",
+    margin: 8,
+    borderRadius: 15,
+    alignSelf: "flex-start", // Para não ocupar largura total
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
+  },
+  dialogDescription: {
+    padding: 15,
+    paddingTop: 0, // Reduz padding superior
+  },
+  dialogQuestionsScroll: {
+    maxHeight: 300, // Altura máxima para o scroll
+  },
+  dialogQuestionsContent: {
+    paddingBottom: 10, // Espaço extra no final
+  },
+  dialogQuestion: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    padding: 15,
+    paddingVertical: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: "#EEEEEE",
+  },
+  dialogButtons: {
+    flexDirection: "row",
+    justifyContent: "flex-end",
+    gap: 15,
+    padding: 15,
+    paddingTop: 10,
   },
 });

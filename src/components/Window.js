@@ -81,7 +81,7 @@ export default function Window({ window, updateWindow, deleteWindow }) {
               onChangeText={(text) => updateWindow({ ...window, nome: text })}
             />
           )}
-          <Pressable style={styles.deleteButton} onPress={() => deleteWindow(window.id)}>
+          <Pressable style={styles.deleteButton} onPress={() => deleteWindow()}>
             <Icon source="delete" size={14} color="black" />
           </Pressable>
           <Pressable
