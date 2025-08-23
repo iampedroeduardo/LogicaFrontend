@@ -6,7 +6,7 @@ import {
   Image,
   Pressable,
   useWindowDimensions,
-  ScrollView
+  ScrollView,
 } from "react-native";
 import {
   Appbar,
@@ -16,12 +16,13 @@ import {
   Button,
   Dialog,
   Portal,
-  Checkbox,
+  Snackbar,
 } from "react-native-paper";
 import Logo from "../components/Logo.js";
 import { LinearGradient } from "expo-linear-gradient";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import Window from "../components/Window.js";
+import instance from "../axios.js";
 
 const imagensPerfil = {
   preto_none: require("../../assets/images/perfil_preto_none.png"),
@@ -62,6 +63,9 @@ export default function CadastroAtividade({ navigation }) {
   const openMenu = () => setVisible(true);
   const closeMenu = () => setVisible(false);
   const { width, height } = useWindowDimensions();
+  const [mensagem, setMensagem] = useState("");
+  const [snackbarVisible, setSnackbarVisible] = useState(false);
+  const [ranks, setRanks] = useState([]);
 
   useEffect(() => {
     async function getUsuario() {
@@ -72,6 +76,26 @@ export default function CadastroAtividade({ navigation }) {
     }
     getUsuario();
   }, []);
+
+  useEffect(() => {
+    async function fetchRanks() {
+      if (usuario && usuario.token) {
+        try {
+          const { data } = await instance.get(`/atividades/ranks`, {
+            headers: {
+              Authorization: `Bearer ${usuario.token}`,
+            },
+          });
+          setRanks(data);
+        } catch (error) {
+          console.error("Erro ao buscar ranks:", error);
+          setMensagem("Erro ao carregar os ranks. Tente novamente.");
+          setSnackbarVisible(true);
+        }
+      }
+    }
+    fetchRanks();
+  }, [usuario]);
 
   async function deslogar() {
     await AsyncStorage.removeItem("usuario");
@@ -158,6 +182,7 @@ export default function CadastroAtividade({ navigation }) {
       y: newY,
       closed: false,
       salvar: true,
+      rankId: null
     };
 
     setWindows((prev) => [...prev, newWindow]);
@@ -183,11 +208,41 @@ export default function CadastroAtividade({ navigation }) {
   }
 
   function updateWindow(updatedWindow) {
+    console.log(updatedWindow)
     setWindows((prevWindows) =>
       prevWindows.map((w) =>
         w.id === updatedWindow.id ? { ...w, ...updatedWindow } : w
       )
     );
+  }
+
+  async function salvar() {
+    const windowsWrong = windows.map((window) => {
+      if (
+        window.type === "multiplaEscolha" &&
+        window.salvar &&
+        (window.nome.trim().length === 0 ||
+          window.pergunta.trim().length === 0 ||
+          window.opcao1.trim().length === 0 ||
+          window.opcao2.trim().length === 0 ||
+          window.opcao3.trim().length === 0 ||
+          window.opcao4.trim().length === 0 ||
+          window.opcaoCorreta.length === 0 ||
+          window.gabarito.trim().length === 0 ||
+          window.descricao.trim().length === 0)
+      ) {
+        return window;
+      }
+    }).filter((x)=>x!==undefined);
+    if (windowsWrong.length > 0) {
+      setSnackbarVisible(true);
+      setMensagem(
+        "Preencha todos os campos das questões: " +
+          windowsWrong.map((x)=>x.nome).join(", ") +
+          "."
+      );
+      return;
+    }
   }
 
   const imagemKey = `${usuario.cor.toLowerCase()}_${usuario.acessorio.toLowerCase()}`;
@@ -295,6 +350,7 @@ export default function CadastroAtividade({ navigation }) {
             <Window
               key={index}
               window={window}
+              ranks={ranks}
               updateWindow={updateWindow}
               deleteWindow={() => {
                 setWindows((prev) => prev.filter((w) => w.id !== window.id));
@@ -436,8 +492,8 @@ export default function CadastroAtividade({ navigation }) {
                 buttonColor="#6446db"
                 style={{ minWidth: 100 }}
                 onPress={() => {
-                  // salvar();
                   setDialogVisible(false);
+                  salvar();
                 }}
               >
                 Salvar
@@ -446,6 +502,15 @@ export default function CadastroAtividade({ navigation }) {
           </View>
         </Dialog>
       </Portal>
+      <Snackbar
+        visible={snackbarVisible}
+        duration={3000}
+        onDismiss={() => {
+          setSnackbarVisible(false);
+        }}
+      >
+        {mensagem}
+      </Snackbar>
     </View>
   );
 }

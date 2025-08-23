@@ -10,8 +10,9 @@ import {
 } from "react-native";
 import React, { useRef, useState, useMemo } from "react";
 import { Icon } from "react-native-paper";
+import DropDownPicker from "react-native-dropdown-picker";
 
-export default function Window({ window, updateWindow, deleteWindow }) {
+export default function Window({ window, updateWindow, deleteWindow, ranks }) {
   const pan = useRef(
     new Animated.ValueXY({ x: window.x || 20, y: window.y || 20 })
   ).current;
@@ -24,7 +25,16 @@ export default function Window({ window, updateWindow, deleteWindow }) {
   const [abertoB, setAbertoB] = useState(false);
   const [abertoC, setAbertoC] = useState(false);
   const [abertoD, setAbertoD] = useState(false);
+  const [abertoConfig, setAbertoConfig] = useState(false);
   const [switchQuestionTemplate, setSwitchQuestionTemplate] = useState('question');
+  const [open, setOpen] = useState(false);
+  const [value, setValue] = useState(false)
+  const [itens, setItens] = useState(
+      ranks.map(rank =>({
+        label: rank.nome,
+        value: rank.id
+      }))
+    );
 
   const panResponder = useMemo(
     () =>
@@ -161,7 +171,7 @@ export default function Window({ window, updateWindow, deleteWindow }) {
                       padding: 10,
                       outlineStyle: "none",
                     }}
-                    onChangeText={(text) => updateWindow({ ...window, gabarito: text })}
+                    onChangeText={(text) => updateWindow({ ...window, pergunta: text })}
                   />
           </View>
         )}
@@ -270,6 +280,7 @@ export default function Window({ window, updateWindow, deleteWindow }) {
                   <View>
                     <TextInput
                       placeholder="Escreva aqui a alternativa A..."
+                      onChangeText={(text) => updateWindow({ ...window, opcao1: text })}
                       style={{
                         height: 40,
                         width: 230,
@@ -303,6 +314,7 @@ export default function Window({ window, updateWindow, deleteWindow }) {
                   <View>
                     <TextInput
                       placeholder="Escreva aqui a alternativa B..."
+                      onChangeText={(text) => updateWindow({ ...window, opcao2: text })}
                       style={{
                         height: 40,
                         width: 230,
@@ -335,6 +347,7 @@ export default function Window({ window, updateWindow, deleteWindow }) {
                   <View>
                     <TextInput
                       placeholder="Escreva aqui a alternativa C..."
+                      onChangeText={(text) => updateWindow({ ...window, opcao3: text })}
                       style={{
                         height: 40,
                         width: 230,
@@ -367,6 +380,7 @@ export default function Window({ window, updateWindow, deleteWindow }) {
                   <View>
                     <TextInput
                       placeholder="Escreva aqui a alternativa D..."
+                      onChangeText={(text) => updateWindow({ ...window, opcao4: text })}
                       style={{
                         height: 40,
                         width: 230,
@@ -386,6 +400,46 @@ export default function Window({ window, updateWindow, deleteWindow }) {
                   }
                 </View>
               )}
+            </View>
+            <View style={styles.popupView}>
+              <Pressable
+                style={styles.popupIcon}
+                onPress={() => {
+                  setAbertoErro(!abertoErro);
+                  setAbertoLacuna(false);
+                  setAbertoDesc(false);
+                }}
+              >
+                <Icon source="cog" size={20} color="black" />
+              </Pressable>
+              {abertoErro && (
+                <View style={styles.viewDesc}>
+                  <Text>Configurações</Text>
+                  <View
+                    style={{
+                      height: 137.6,
+                      width: 230,
+                      backgroundColor: "#EEEEEE",
+                      padding: 10,
+                      borderRadius: 15,
+                    }}
+                  >
+                  <Text>Rank:</Text>
+                  <DropDownPicker
+                  style={styles.picker}
+                  items={itens}
+                  value={value}
+                  open={open}
+                  setItems={setItens}
+                  setOpen={setOpen}
+                  setValue={setValue}
+                  onChangeValue={(value)=>{updateWindow({...window, rankId: value})}}
+                  placeholder="Selecione um rank"
+                  />
+                  </View>
+                </View>
+              )}
+              {abertoErro && <View style={{ height: 160 }}></View>}
             </View>
           </View>
         ))}
@@ -600,5 +654,12 @@ const styles = StyleSheet.create({
   paddingHorizontal: 5,
     paddingVertical: 0,
     borderRadius: 15,
-  }
+  },
+  picker: {
+    backgroundColor: "white",
+    paddingHorizontal: 10,
+    borderRadius: 20,
+    marginTop: 5,
+    
+  },
 });
