@@ -181,8 +181,10 @@ export default function CadastroAtividade({ navigation }) {
       x: newX,
       y: newY,
       closed: false,
-      salvar: true,
-      rankId: null
+      salvar: false,
+      rankId: null,
+      nivel: null,
+      tipo: "",
     };
 
     setWindows((prev) => [...prev, newWindow]);
@@ -229,7 +231,7 @@ export default function CadastroAtividade({ navigation }) {
           window.opcao4.trim().length === 0 ||
           window.opcaoCorreta.length === 0 ||
           window.gabarito.trim().length === 0 ||
-          window.descricao.trim().length === 0)
+          window.descricao.trim().length === 0 || ((window.tipo.trim().length === 0 || window.rankId === null || window.nivel === null) && usuario.adm))
       ) {
         return window;
       }
@@ -243,6 +245,21 @@ export default function CadastroAtividade({ navigation }) {
       );
       return;
     }
+    instance
+        .post("/atividades/cadastro", {questoes: windows}, {
+          headers: {
+            Authorization: `Bearer ${usuario.token}`,
+          },
+        })
+        .then(async (response) => {
+          setSnackbarVisible(true);
+          setMensagem("Questões salvas com sucesso!");
+        })
+        .catch((error) => {
+          console.log(error);
+          setSnackbarVisible(true);
+          setMensagem("Erro ao salvar questões. Tente novamente.");
+        });
   }
 
   const imagemKey = `${usuario.cor.toLowerCase()}_${usuario.acessorio.toLowerCase()}`;
@@ -351,6 +368,7 @@ export default function CadastroAtividade({ navigation }) {
               key={index}
               window={window}
               ranks={ranks}
+              usuario={usuario}
               updateWindow={updateWindow}
               deleteWindow={() => {
                 setWindows((prev) => prev.filter((w) => w.id !== window.id));

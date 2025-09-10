@@ -11,8 +11,15 @@ import {
 import React, { useRef, useState, useMemo } from "react";
 import { Icon } from "react-native-paper";
 import DropDownPicker from "react-native-dropdown-picker";
+import CodeEditor, { CodeEditorSyntaxStyles } from '@rivascva/react-native-code-editor';
 
-export default function Window({ window, updateWindow, deleteWindow, ranks }) {
+export default function Window({
+  window,
+  updateWindow,
+  deleteWindow,
+  ranks,
+  usuario,
+}) {
   const pan = useRef(
     new Animated.ValueXY({ x: window.x || 20, y: window.y || 20 })
   ).current;
@@ -26,15 +33,29 @@ export default function Window({ window, updateWindow, deleteWindow, ranks }) {
   const [abertoC, setAbertoC] = useState(false);
   const [abertoD, setAbertoD] = useState(false);
   const [abertoConfig, setAbertoConfig] = useState(false);
-  const [switchQuestionTemplate, setSwitchQuestionTemplate] = useState('question');
-  const [open, setOpen] = useState(false);
-  const [value, setValue] = useState(false)
-  const [itens, setItens] = useState(
-      ranks.map(rank =>({
-        label: rank.nome,
-        value: rank.id
-      }))
-    );
+  const [switchQuestionTemplate, setSwitchQuestionTemplate] =
+    useState("question");
+  const [openRank, setOpenRank] = useState(false);
+  const [rank, setRank] = useState(false);
+  const [rankItens, setRankItens] = useState(
+    ranks.map((rank) => ({
+      label: rank.nome,
+      value: rank.id,
+    }))
+  );
+  const [openNivel, setOpenNivel] = useState(false);
+  const [nivel, setNivel] = useState(false);
+  const [nivelItens, setNiveis] = useState([
+    { label: "+", value: 0 },
+    { label: "++", value: 1 },
+    { label: "+++", value: 2 },
+  ]);
+  const [openTipo, setOpenTipo] = useState(false);
+  const [tipo, setTipo] = useState(false);
+  const [tipos, setTipos] = useState([
+    { label: "Raciocínio Lógico", value: "RaciocinioLogico" },
+    { label: "Programação", value: "Programacao" },
+  ]);
 
   const panResponder = useMemo(
     () =>
@@ -106,19 +127,48 @@ export default function Window({ window, updateWindow, deleteWindow, ranks }) {
         </View>
         {!closed && (
           <View style={styles.questionContent}>
-            
-              {window.type === "multiplaEscolha" ? (
-                <View style={styles.questionText}>
+            {window.type === "multiplaEscolha" ? (
+              <View style={styles.questionText}>
                 <View style={styles.divSwitchQuestionTemplate}>
-                  <Pressable style={switchQuestionTemplate == "question" ? styles.selectedSwitchQuestionTemplate : styles.notSelectedSwitchQuestionTemplate} onPress={() => setSwitchQuestionTemplate('question')}>
-                    <Text style={switchQuestionTemplate == "question" ? {fontWeight: 500} : {color:'white'}}>Descrição</Text>
+                  <Pressable
+                    style={
+                      switchQuestionTemplate == "question"
+                        ? styles.selectedSwitchQuestionTemplate
+                        : styles.notSelectedSwitchQuestionTemplate
+                    }
+                    onPress={() => setSwitchQuestionTemplate("question")}
+                  >
+                    <Text
+                      style={
+                        switchQuestionTemplate == "question"
+                          ? { fontWeight: 500 }
+                          : { color: "white" }
+                      }
+                    >
+                      Descrição
+                    </Text>
                   </Pressable>
-                  <Pressable style={switchQuestionTemplate == "template" ? styles.selectedSwitchQuestionTemplate : styles.notSelectedSwitchQuestionTemplate} onPress={() => setSwitchQuestionTemplate('template')}>
-                    <Text style={switchQuestionTemplate == "template" ? {fontWeight: 500} : {color:'white'}}>Gabarito</Text>
+                  <Pressable
+                    style={
+                      switchQuestionTemplate == "template"
+                        ? styles.selectedSwitchQuestionTemplate
+                        : styles.notSelectedSwitchQuestionTemplate
+                    }
+                    onPress={() => setSwitchQuestionTemplate("template")}
+                  >
+                    <Text
+                      style={
+                        switchQuestionTemplate == "template"
+                          ? { fontWeight: 500 }
+                          : { color: "white" }
+                      }
+                    >
+                      Gabarito
+                    </Text>
                   </Pressable>
                 </View>
                 <View>
-                   <TextInput
+                  <TextInput
                     multiline={true}
                     numberOfLines={30}
                     placeholder="Escreva a descrição da questão aqui..."
@@ -130,11 +180,14 @@ export default function Window({ window, updateWindow, deleteWindow, ranks }) {
                       padding: 10,
                       borderRadius: 15,
                       outlineStyle: "none",
-                      display: switchQuestionTemplate == "question" ? "flex" : "none"
+                      display:
+                        switchQuestionTemplate == "question" ? "flex" : "none",
                     }}
-                    onChangeText={(text) => updateWindow({ ...window, descricao: text })}
+                    onChangeText={(text) =>
+                      updateWindow({ ...window, descricao: text })
+                    }
                   />
-                  
+
                   <TextInput
                     multiline={true}
                     numberOfLines={30}
@@ -147,32 +200,46 @@ export default function Window({ window, updateWindow, deleteWindow, ranks }) {
                       padding: 10,
                       borderRadius: 15,
                       outlineStyle: "none",
-                      display: switchQuestionTemplate == "template" ? "flex" : "none"
+                      display:
+                        switchQuestionTemplate == "template" ? "flex" : "none",
                     }}
-                    onChangeText={(text) => updateWindow({ ...window, gabarito: text })}
+                    onChangeText={(text) =>
+                      updateWindow({ ...window, gabarito: text })
+                    }
                   />
                 </View>
-                </View>
-              ) : window.type === "codigo" ? (
-                <></>
-              ) : (
-                <Text></Text>
-              )}
-              <TextInput
-                    multiline={true}
-                    numberOfLines={30}
-                    placeholder="Escreva a pergunta da questão aqui..."
-                    style={{
-                      height: 80,
-                      width: 280,
-                      textAlignVertical: "top",
-                      backgroundColor: "#6446DB",
-                      //placeholderTextColor: "rgb(0, 0, 0)",
-                      padding: 10,
-                      outlineStyle: "none",
-                    }}
-                    onChangeText={(text) => updateWindow({ ...window, pergunta: text })}
-                  />
+              </View>
+            ) : window.type === "codigo" ? (
+              <CodeEditor
+            style={{
+                fontSize: 20,
+                inputLineHeight: 26,
+                highlighterLineHeight: 26,
+            }}
+            language="javascript"
+            syntaxStyle={CodeEditorSyntaxStyles.atomOneDark}
+            showLineNumbers
+        />
+            ) : (
+              <Text></Text>
+            )}
+            <TextInput
+              multiline={true}
+              numberOfLines={30}
+              placeholder="Escreva a pergunta da questão aqui..."
+              style={{
+                height: 80,
+                width: 280,
+                textAlignVertical: "top",
+                backgroundColor: "#6446DB",
+                //placeholderTextColor: "rgb(0, 0, 0)",
+                padding: 10,
+                outlineStyle: "none",
+              }}
+              onChangeText={(text) =>
+                updateWindow({ ...window, pergunta: text })
+              }
+            />
           </View>
         )}
       </View>
@@ -199,7 +266,7 @@ export default function Window({ window, updateWindow, deleteWindow, ranks }) {
                     numberOfLines={10}
                     placeholder="Escreva aqui a descrição do algoritmo..."
                     style={{
-                      height: 200,
+                      height: 137.6,
                       width: 230,
                       textAlignVertical: "top",
                       backgroundColor: "#EEEEEE",
@@ -276,29 +343,59 @@ export default function Window({ window, updateWindow, deleteWindow, ranks }) {
                 <Icon source="alpha-a" size={20} color="black" />
               </Pressable>
               {abertoA && (
-                <View style={{...styles.viewOpcoes, backgroundColor: window.opcaoCorreta === "" ? "white" : window.opcaoCorreta === "a" ? "#9CEC86" : "#FF9999"}}>
+                <View
+                  style={{
+                    ...styles.viewOpcoes,
+                    backgroundColor:
+                      window.opcaoCorreta === ""
+                        ? "white"
+                        : window.opcaoCorreta === "a"
+                        ? "#9CEC86"
+                        : "#FF9999",
+                  }}
+                >
                   <View>
                     <TextInput
                       placeholder="Escreva aqui a alternativa A..."
-                      onChangeText={(text) => updateWindow({ ...window, opcao1: text })}
+                      onChangeText={(text) =>
+                        updateWindow({ ...window, opcao1: text })
+                      }
                       style={{
                         height: 40,
                         width: 230,
-                        backgroundColor: window.opcaoCorreta === "" ? "white" : window.opcaoCorreta === "a" ? "#9CEC86" : "#FF9999",
+                        backgroundColor:
+                          window.opcaoCorreta === ""
+                            ? "white"
+                            : window.opcaoCorreta === "a"
+                            ? "#9CEC86"
+                            : "#FF9999",
                         padding: 10,
                         borderRadius: 15,
                         outlineStyle: "none",
                       }}
                     />
                   </View>
-                  {
-                    window.opcaoCorreta.length === 0 ? (<Pressable style={styles.opcaoCorreta} onPress={()=> updateWindow({...window, opcaoCorreta: "a"})}>
-                    <Icon source="check" size={20} color="black" />
-                  </Pressable>) : window.opcaoCorreta === "a" ? (<Pressable style={styles.opcaoCorreta} onPress={()=> updateWindow({...window, opcaoCorreta: ""})}>
-                    <Icon source="close" size={20} color="black" />
-                  </Pressable>) : (<></>)
-                  }
-                  
+                  {window.opcaoCorreta.length === 0 ? (
+                    <Pressable
+                      style={styles.opcaoCorreta}
+                      onPress={() =>
+                        updateWindow({ ...window, opcaoCorreta: "a" })
+                      }
+                    >
+                      <Icon source="check" size={20} color="black" />
+                    </Pressable>
+                  ) : window.opcaoCorreta === "a" ? (
+                    <Pressable
+                      style={styles.opcaoCorreta}
+                      onPress={() =>
+                        updateWindow({ ...window, opcaoCorreta: "" })
+                      }
+                    >
+                      <Icon source="close" size={20} color="black" />
+                    </Pressable>
+                  ) : (
+                    <></>
+                  )}
                 </View>
               )}
             </View>
@@ -310,28 +407,59 @@ export default function Window({ window, updateWindow, deleteWindow, ranks }) {
                 <Icon source="alpha-b" size={20} color="black" />
               </Pressable>
               {abertoB && (
-                <View style={{...styles.viewOpcoes, backgroundColor: window.opcaoCorreta === "" ? "white" : window.opcaoCorreta === "b" ? "#9CEC86" : "#FF9999"}}>
+                <View
+                  style={{
+                    ...styles.viewOpcoes,
+                    backgroundColor:
+                      window.opcaoCorreta === ""
+                        ? "white"
+                        : window.opcaoCorreta === "b"
+                        ? "#9CEC86"
+                        : "#FF9999",
+                  }}
+                >
                   <View>
                     <TextInput
                       placeholder="Escreva aqui a alternativa B..."
-                      onChangeText={(text) => updateWindow({ ...window, opcao2: text })}
+                      onChangeText={(text) =>
+                        updateWindow({ ...window, opcao2: text })
+                      }
                       style={{
                         height: 40,
                         width: 230,
-                        backgroundColor: window.opcaoCorreta === "" ? "white" : window.opcaoCorreta === "b" ? "#9CEC86" : "#FF9999",
+                        backgroundColor:
+                          window.opcaoCorreta === ""
+                            ? "white"
+                            : window.opcaoCorreta === "b"
+                            ? "#9CEC86"
+                            : "#FF9999",
                         padding: 10,
                         borderRadius: 15,
                         outlineStyle: "none",
                       }}
                     />
                   </View>
-                  {
-                    window.opcaoCorreta.length === 0 ? (<Pressable style={styles.opcaoCorreta} onPress={()=> updateWindow({...window, opcaoCorreta: "b"})}>
-                    <Icon source="check" size={20} color="black" />
-                  </Pressable>) : window.opcaoCorreta === "b" ? (<Pressable style={styles.opcaoCorreta} onPress={()=> updateWindow({...window, opcaoCorreta: ""})}>
-                    <Icon source="close" size={20} color="black" />
-                  </Pressable>) : (<></>)
-                  }
+                  {window.opcaoCorreta.length === 0 ? (
+                    <Pressable
+                      style={styles.opcaoCorreta}
+                      onPress={() =>
+                        updateWindow({ ...window, opcaoCorreta: "b" })
+                      }
+                    >
+                      <Icon source="check" size={20} color="black" />
+                    </Pressable>
+                  ) : window.opcaoCorreta === "b" ? (
+                    <Pressable
+                      style={styles.opcaoCorreta}
+                      onPress={() =>
+                        updateWindow({ ...window, opcaoCorreta: "" })
+                      }
+                    >
+                      <Icon source="close" size={20} color="black" />
+                    </Pressable>
+                  ) : (
+                    <></>
+                  )}
                 </View>
               )}
             </View>
@@ -343,28 +471,59 @@ export default function Window({ window, updateWindow, deleteWindow, ranks }) {
                 <Icon source="alpha-c" size={20} color="black" />
               </Pressable>
               {abertoC && (
-                <View style={{...styles.viewOpcoes, backgroundColor: window.opcaoCorreta === "" ? "white" : window.opcaoCorreta === "c" ? "#9CEC86" : "#FF9999"}}>
+                <View
+                  style={{
+                    ...styles.viewOpcoes,
+                    backgroundColor:
+                      window.opcaoCorreta === ""
+                        ? "white"
+                        : window.opcaoCorreta === "c"
+                        ? "#9CEC86"
+                        : "#FF9999",
+                  }}
+                >
                   <View>
                     <TextInput
                       placeholder="Escreva aqui a alternativa C..."
-                      onChangeText={(text) => updateWindow({ ...window, opcao3: text })}
+                      onChangeText={(text) =>
+                        updateWindow({ ...window, opcao3: text })
+                      }
                       style={{
                         height: 40,
                         width: 230,
-                        backgroundColor: window.opcaoCorreta === "" ? "white" : window.opcaoCorreta === "c" ? "#9CEC86" : "#FF9999",
+                        backgroundColor:
+                          window.opcaoCorreta === ""
+                            ? "white"
+                            : window.opcaoCorreta === "c"
+                            ? "#9CEC86"
+                            : "#FF9999",
                         padding: 10,
                         borderRadius: 15,
                         outlineStyle: "none",
                       }}
                     />
                   </View>
-                  {
-                    window.opcaoCorreta.length === 0 ? (<Pressable style={styles.opcaoCorreta} onPress={()=> updateWindow({...window, opcaoCorreta: "c"})}>
-                    <Icon source="check" size={20} color="black" />
-                  </Pressable>) : window.opcaoCorreta === "c" ? (<Pressable style={styles.opcaoCorreta} onPress={()=> updateWindow({...window, opcaoCorreta: ""})}>
-                    <Icon source="close" size={20} color="black" />
-                  </Pressable>) : (<></>)
-                  }
+                  {window.opcaoCorreta.length === 0 ? (
+                    <Pressable
+                      style={styles.opcaoCorreta}
+                      onPress={() =>
+                        updateWindow({ ...window, opcaoCorreta: "c" })
+                      }
+                    >
+                      <Icon source="check" size={20} color="black" />
+                    </Pressable>
+                  ) : window.opcaoCorreta === "c" ? (
+                    <Pressable
+                      style={styles.opcaoCorreta}
+                      onPress={() =>
+                        updateWindow({ ...window, opcaoCorreta: "" })
+                      }
+                    >
+                      <Icon source="close" size={20} color="black" />
+                    </Pressable>
+                  ) : (
+                    <></>
+                  )}
                 </View>
               )}
             </View>
@@ -376,71 +535,270 @@ export default function Window({ window, updateWindow, deleteWindow, ranks }) {
                 <Icon source="alpha-d" size={20} color="black" />
               </Pressable>
               {abertoD && (
-                <View style={{...styles.viewOpcoes, backgroundColor: window.opcaoCorreta === "" ? "white" : window.opcaoCorreta === "d" ? "#9CEC86" : "#FF9999"}}>
+                <View
+                  style={{
+                    ...styles.viewOpcoes,
+                    backgroundColor:
+                      window.opcaoCorreta === ""
+                        ? "white"
+                        : window.opcaoCorreta === "d"
+                        ? "#9CEC86"
+                        : "#FF9999",
+                  }}
+                >
                   <View>
                     <TextInput
                       placeholder="Escreva aqui a alternativa D..."
-                      onChangeText={(text) => updateWindow({ ...window, opcao4: text })}
+                      onChangeText={(text) =>
+                        updateWindow({ ...window, opcao4: text })
+                      }
                       style={{
                         height: 40,
                         width: 230,
-                        backgroundColor: window.opcaoCorreta === "" ? "white" : window.opcaoCorreta === "d" ? "#9CEC86" : "#FF9999",
+                        backgroundColor:
+                          window.opcaoCorreta === ""
+                            ? "white"
+                            : window.opcaoCorreta === "d"
+                            ? "#9CEC86"
+                            : "#FF9999",
                         padding: 10,
                         borderRadius: 15,
                         outlineStyle: "none",
                       }}
                     />
                   </View>
-                  {
-                    window.opcaoCorreta.length === 0 ? (<Pressable style={styles.opcaoCorreta} onPress={()=> updateWindow({...window, opcaoCorreta: "d"})}>
-                    <Icon source="check" size={20} color="black" />
-                  </Pressable>) : window.opcaoCorreta === "d" ? (<Pressable style={styles.opcaoCorreta} onPress={()=> updateWindow({...window, opcaoCorreta: ""})}>
-                    <Icon source="close" size={20} color="black" />
-                  </Pressable>) : (<></>)
-                  }
+                  {window.opcaoCorreta.length === 0 ? (
+                    <Pressable
+                      style={styles.opcaoCorreta}
+                      onPress={() =>
+                        updateWindow({ ...window, opcaoCorreta: "d" })
+                      }
+                    >
+                      <Icon source="check" size={20} color="black" />
+                    </Pressable>
+                  ) : window.opcaoCorreta === "d" ? (
+                    <Pressable
+                      style={styles.opcaoCorreta}
+                      onPress={() =>
+                        updateWindow({ ...window, opcaoCorreta: "" })
+                      }
+                    >
+                      <Icon source="close" size={20} color="black" />
+                    </Pressable>
+                  ) : (
+                    <></>
+                  )}
                 </View>
               )}
             </View>
-            <View style={styles.popupView}>
-              <Pressable
-                style={styles.popupIcon}
-                onPress={() => {
-                  setAbertoErro(!abertoErro);
-                  setAbertoLacuna(false);
-                  setAbertoDesc(false);
-                }}
-              >
-                <Icon source="cog" size={20} color="black" />
-              </Pressable>
-              {abertoErro && (
-                <View style={styles.viewDesc}>
-                  <Text>Configurações</Text>
-                  <View
-                    style={{
-                      height: 137.6,
-                      width: 230,
-                      backgroundColor: "#EEEEEE",
-                      padding: 10,
-                      borderRadius: 15,
-                    }}
-                  >
-                  <Text>Rank:</Text>
-                  <DropDownPicker
-                  style={styles.picker}
-                  items={itens}
-                  value={value}
-                  open={open}
-                  setItems={setItens}
-                  setOpen={setOpen}
-                  setValue={setValue}
-                  onChangeValue={(value)=>{updateWindow({...window, rankId: value})}}
-                  placeholder="Selecione um rank"
-                  />
+            {usuario.adm && (
+              <View style={styles.popupView}>
+                <Pressable
+                  style={styles.popupIcon}
+                  onPress={() => {
+                    setAbertoConfig(!abertoConfig);
+                  }}
+                >
+                  <Icon source="cog" size={20} color="black" />
+                </Pressable>
+                {abertoConfig && (
+                  <View style={styles.viewDesc}>
+                    <Text>Configurações</Text>
+                    <View
+                      style={{
+                        width: 230,
+                        backgroundColor: "#EEEEEE",
+                        padding: 10,
+                        borderRadius: 15,
+                      }}
+                    >
+                      <Text>Tipo:</Text>
+                      <DropDownPicker
+                        zIndex={5000}
+                        style={styles.picker}
+                        items={tipos}
+                        value={tipo}
+                        open={openTipo}
+                        setItems={setTipos}
+                        setOpen={setOpenTipo}
+                        setValue={setTipo}
+                        onOpen={() => {
+                          setOpenRank(false);
+                          setOpenNivel(false);
+                        }}
+                        onChangeValue={(value) => { // `value` é o novo tipo selecionado
+                          // Filtra a lista original de `ranks` com base no tipo
+                          const newRankItems = ranks
+                            .filter((r) => r.tipo === value)
+                            .map((r) => ({ label: r.nome, value: r.id }));
+                          setRankItens(newRankItems);
+                          setRank(null); // Reseta a seleção do rank
+                          updateWindow({ ...window, tipo: value, rankId: null });
+                        }}
+                        placeholder="Selecione um tipo..."
+                        listMode="SCROLLVIEW"
+                        dropDownContainerStyle={{
+                          zIndex: 5000,
+                          backgroundColor: "white",
+                          borderWidth: 0,
+                          borderRadius: 20,
+                          width: 210,
+                          shadowColor: "#000",
+                          shadowOffset: {
+                            width: 0,
+                            height: 2,
+                          },
+                          shadowOpacity: 0.25,
+                          shadowRadius: 3.84,
+                          elevation: 5,
+                        }}
+                        // Estilo de cada item da lista
+                        listItemContainerStyle={{
+                          backgroundColor: "white",
+                          borderWidth: 0,
+                          height: 45,
+                        }}
+                        // Estilo do texto de cada item
+                        listItemLabelStyle={{
+                          color: "#333",
+                          fontSize: 14,
+                        }}
+                        selectedItemLabelStyle={{
+                          color: "#6200ee",
+                          fontWeight: "bold",
+                        }}
+                        // Estilo do placeholder
+                        placeholderStyle={{
+                          color: "grey",
+                        }}
+                        // Estilo da seta
+                        arrowIconStyle={{
+                          tintColor: "#6200ee",
+                        }}
+                      />
+                      <Text>Rank:</Text>
+                      <DropDownPicker
+                        zIndex={4000}
+                        style={styles.picker}
+                        items={rankItens}
+                        value={rank}
+                        open={openRank}
+                        setItems={setRankItens}
+                        setOpen={setOpenRank}
+                        setValue={setRank}
+                        onOpen={() => {
+                          setOpenTipo(false);
+                          setOpenNivel(false);
+                        }}
+                        onChangeValue={(value) => {
+                          updateWindow({ ...window, rankId: value });
+                        }}
+                        placeholder="Selecione um rank..."
+                        listMode="SCROLLVIEW"
+                        dropDownContainerStyle={{
+                          zIndex: 4000,
+                          backgroundColor: "white",
+                          borderWidth: 0,
+                          borderRadius: 20,
+                          width: 210,
+                          maxHeight: 140,
+                          shadowColor: "#000",
+                          shadowOffset: {
+                            width: 0,
+                            height: 2,
+                          },
+                          shadowOpacity: 0.25,
+                          shadowRadius: 3.84,
+                          elevation: 5,
+                        }}
+                        // Estilo de cada item da lista
+                        listItemContainerStyle={{
+                          backgroundColor: "white",
+                          borderWidth: 0,
+                          height: 45,
+                        }}
+                        // Estilo do texto de cada item
+                        listItemLabelStyle={{
+                          color: "#333",
+                          fontSize: 14,
+                        }}
+                        selectedItemLabelStyle={{
+                          color: "#6200ee",
+                          fontWeight: "bold",
+                        }}
+                        // Estilo do placeholder
+                        placeholderStyle={{
+                          color: "grey",
+                        }}
+                        // Estilo da seta
+                        arrowIconStyle={{
+                          tintColor: "#6200ee",
+                        }}
+                      />
+                      <Text>Nível:</Text>
+                      <DropDownPicker
+                        zIndex={3000}
+                        style={styles.picker}
+                        items={nivelItens}
+                        value={nivel}
+                        open={openNivel}
+                        setItems={setNiveis}
+                        setOpen={setOpenNivel}
+                        setValue={setNivel}
+                        onOpen={() => {
+                          setOpenTipo(false);
+                          setOpenRank(false);
+                        }}
+                        onChangeValue={(value) => {
+                          updateWindow({ ...window, nivel: value });
+                        }}
+                        placeholder="Selecione um nível..."
+                        listMode="SCROLLVIEW"
+                        dropDownContainerStyle={{
+                          zIndex: 3000,
+                          backgroundColor: "white",
+                          borderWidth: 0,
+                          borderRadius: 20,
+                          width: 210,
+                          shadowColor: "#000",
+                          shadowOffset: {
+                            width: 0,
+                            height: 2,
+                          },
+                          shadowOpacity: 0.25,
+                          shadowRadius: 3.84,
+                          elevation: 5,
+                        }}
+                        // Estilo de cada item da lista
+                        listItemContainerStyle={{
+                          backgroundColor: "white",
+                          borderWidth: 0,
+                          height: 45,
+                        }}
+                        // Estilo do texto de cada item
+                        listItemLabelStyle={{
+                          color: "#333",
+                          fontSize: 14,
+                        }}
+                        selectedItemLabelStyle={{
+                          color: "#6200ee",
+                          fontWeight: "bold",
+                        }}
+                        // Estilo do placeholder
+                        placeholderStyle={{
+                          color: "grey",
+                        }}
+                        // Estilo da seta
+                        arrowIconStyle={{
+                          tintColor: "#6200ee",
+                        }}
+                      />
+                    </View>
                   </View>
-                </View>
-              )}
-              {abertoErro && <View style={{ height: 160 }}></View>}
-            </View>
+                )}
+                {abertoErro && <View style={{ height: 160 }}></View>}
+              </View>
+            )}
           </View>
         ))}
     </Animated.View>
@@ -537,7 +895,7 @@ const styles = StyleSheet.create({
     flexDirection: "column",
     justifyContent: "center",
     alignItems: "center",
-    paddingTop: 10
+    paddingTop: 10,
   },
   questionPopups: {
     display: "flex",
@@ -571,7 +929,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     gap: 20,
     width: 250,
-    height: 200,
+    minHeight: 200,
     backgroundColor: "white",
     padding: 12,
     borderRadius: 15,
@@ -632,15 +990,15 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.25,
     shadowRadius: 3.84,
     elevation: 5,
-    alignItems: 'center',
-    gap: 5
+    alignItems: "center",
+    gap: 5,
   },
   selectedSwitchQuestionTemplate: {
     backgroundColor: "#BFECFF",
     paddingHorizontal: 5,
     paddingVertical: 0,
     borderRadius: 15,
-    fontWeight: 'bold',
+    fontWeight: "bold",
     shadowColor: "#000",
     shadowOffset: {
       width: 0,
@@ -651,7 +1009,7 @@ const styles = StyleSheet.create({
     elevation: 5,
   },
   notSelectedSwitchQuestionTemplate: {
-  paddingHorizontal: 5,
+    paddingHorizontal: 5,
     paddingVertical: 0,
     borderRadius: 15,
   },
@@ -660,6 +1018,15 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     borderRadius: 20,
     marginTop: 5,
-    
+    border: "none",
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
+    width: 210,
   },
 });
