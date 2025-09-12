@@ -7,11 +7,16 @@ import {
   Animated,
   PanResponder,
   useWindowDimensions,
+  Platform,
 } from "react-native";
 import React, { useRef, useState, useMemo } from "react";
 import { Icon } from "react-native-paper";
 import DropDownPicker from "react-native-dropdown-picker";
-import CodeEditor, { CodeEditorSyntaxStyles } from '@rivascva/react-native-code-editor';
+//editorrr web teste
+import CodeMirror from "@uiw/react-codemirror";
+import { javascript } from "@codemirror/lang-javascript";
+import { EditorView } from "@codemirror/view";
+
 
 export default function Window({
   window,
@@ -210,16 +215,20 @@ export default function Window({
                 </View>
               </View>
             ) : window.type === "codigo" ? (
-              <CodeEditor
-            style={{
-                fontSize: 20,
-                inputLineHeight: 26,
-                highlighterLineHeight: 26,
-            }}
-            language="javascript"
-            syntaxStyle={CodeEditorSyntaxStyles.atomOneDark}
-            showLineNumbers
-        />
+              <View style={styles.editorContainer}>
+                <CodeMirror
+                  height="350px"
+                  extensions={[javascript(), EditorView.lineWrapping]}
+                  onChange={(code) =>
+                    updateWindow({ ...window, script: code })
+                  }
+                  basicSetup={{
+                    lineNumbers: true,
+                    foldGutter: false, //era p tirar o recuo a esquerda mas não funcionou
+                  }}
+                  style={{ fontSize: 16 }}
+                />
+              </View>
             ) : (
               <Text></Text>
             )}
@@ -626,14 +635,15 @@ export default function Window({
                           setOpenRank(false);
                           setOpenNivel(false);
                         }}
-                        onChangeValue={(value) => { // `value` é o novo tipo selecionado
+                        onSelectItem={(item) => {
+                          const value = item.value; // `value` é o novo tipo selecionado
                           // Filtra a lista original de `ranks` com base no tipo
                           const newRankItems = ranks
                             .filter((r) => r.tipo === value)
                             .map((r) => ({ label: r.nome, value: r.id }));
                           setRankItens(newRankItems);
                           setRank(null); // Reseta a seleção do rank
-                          updateWindow({ ...window, tipo: value, rankId: null });
+                          updateWindow({ ...window, tipo: value, rankId: null, nivel: null });
                         }}
                         placeholder="Selecione um tipo..."
                         listMode="SCROLLVIEW"
@@ -1028,5 +1038,14 @@ const styles = StyleSheet.create({
     shadowRadius: 3.84,
     elevation: 5,
     width: 210,
+  },
+  editorContainer: {
+    height: 350,
+    width: 280,
+    backgroundColor: "white", 
+    borderRadius: 15, 
+    overflow: "hidden",
+    borderWidth: 0, 
+    outlineStyle: "none",
   },
 });
