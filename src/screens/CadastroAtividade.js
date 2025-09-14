@@ -210,7 +210,6 @@ export default function CadastroAtividade({ navigation }) {
   }
 
   function updateWindow(updatedWindow) {
-    console.log(updatedWindow)
     setWindows((prevWindows) =>
       prevWindows.map((w) =>
         w.id === updatedWindow.id ? { ...w, ...updatedWindow } : w

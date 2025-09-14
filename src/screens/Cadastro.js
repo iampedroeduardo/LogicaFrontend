@@ -136,7 +136,6 @@ export default function Cadastro({ navigation }) {
   const [genero, setGenero] = useState(
     usuarioArmazenado ? usuarioArmazenado.genero : null
   );
-  console.log(genero);
   const [generos, setGeneros] = useState([
     { label: "Masculino", value: "Masculino" },
     { label: "Feminino", value: "Feminino" },
@@ -145,7 +144,6 @@ export default function Cadastro({ navigation }) {
   const [nome, setNome] = useState(
     usuarioArmazenado ? usuarioArmazenado.nome : ""
   );
-  console.log(nome);
   const [email, setEmail] = useState(
     usuarioArmazenado ? usuarioArmazenado.email : ""
   );

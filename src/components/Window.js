@@ -1,22 +1,20 @@
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
+  Animated,
+  PanResponder,
   Pressable,
   StyleSheet,
   Text,
   TextInput,
-  View,
-  Animated,
-  PanResponder,
   useWindowDimensions,
-  Platform,
+  View,
 } from "react-native";
-import React, { useRef, useState, useMemo } from "react";
-import { Icon } from "react-native-paper";
 import DropDownPicker from "react-native-dropdown-picker";
+import { Icon } from "react-native-paper";
 //editorrr web teste
-import CodeMirror from "@uiw/react-codemirror";
 import { javascript } from "@codemirror/lang-javascript";
-import { EditorView } from "@codemirror/view";
-
+import { Decoration, EditorView, WidgetType } from "@codemirror/view";
+import CodeMirror from "@uiw/react-codemirror";
 
 export default function Window({
   window,
@@ -25,6 +23,7 @@ export default function Window({
   ranks,
   usuario,
 }) {
+  // Referências e Estados existentes...
   const pan = useRef(
     new Animated.ValueXY({ x: window.x || 20, y: window.y || 20 })
   ).current;
@@ -38,8 +37,9 @@ export default function Window({
   const [abertoC, setAbertoC] = useState(false);
   const [abertoD, setAbertoD] = useState(false);
   const [abertoConfig, setAbertoConfig] = useState(false);
-  const [switchQuestionTemplate, setSwitchQuestionTemplate] =
-    useState("question");
+  const [switchQuestionTemplate, setSwitchQuestionTemplate] = useState(
+    window.type === "codigo" ? "error" : "question"
+  );
   const [openRank, setOpenRank] = useState(false);
   const [rank, setRank] = useState(false);
   const [rankItens, setRankItens] = useState(
@@ -61,6 +61,170 @@ export default function Window({
     { label: "Raciocínio Lógico", value: "RaciocinioLogico" },
     { label: "Programação", value: "Programacao" },
   ]);
+  const [startSelection, setStartSelection] = useState(0);
+  const [endSelection, setEndSelection] = useState(0);
+  const [openedError, setOpenedError] = useState(0);
+  const [openedGap, setOpenedGap] = useState(0); // Estado para a lacuna aberta
+
+  // Função para lidar com o clique no widget do editor
+  const handleHighlightClick = (item) => {
+    if (item.type === "error") {
+      setOpenedError(item.id);
+      setAbertoErro(true);
+      setAbertoLacuna(false);
+      setAbertoDesc(false);
+    } else if (item.type === "gap") {
+      setOpenedGap(item.id);
+      setAbertoLacuna(true);
+      setAbertoErro(false);
+      setAbertoDesc(false);
+    }
+  };
+
+  // Função para lidar com a exclusão do widget do editor
+  const handleHighlightDelete = (idToDelete) => {
+    // Fecha os popups se o item excluído for o que está aberto
+    const itemToDelete = window.errosLacuna.find(
+      (item) => item.id === idToDelete
+    );
+    if (itemToDelete) {
+      if (itemToDelete.type === "error" && openedError === idToDelete) {
+        setAbertoErro(false);
+      }
+      if (itemToDelete.type === "gap" && openedGap === idToDelete) {
+        setAbertoLacuna(false);
+      }
+    }
+    // Atualiza o estado removendo o item
+    updateWindow({
+      ...window,
+      errosLacuna: window.errosLacuna.filter((item) => item.id !== idToDelete),
+    });
+  };
+
+  // 1. Plugin para destacar erros e lacunas
+  const highlightPlugin = useMemo(() => {
+    // Classe para o nosso widget de botão customizado
+    class ButtonWidget extends WidgetType {
+      constructor(text, type, item, onClick, onDelete) {
+        super();
+        this.text = text;
+        this.type = type;
+        this.item = item;
+        this.onClick = onClick;
+        this.onDelete = onDelete;
+      }
+
+      toDOM() {
+        const span = document.createElement("span"); // Usa <span> para ser inline
+        const buttonText = document.createElement("button");
+        const buttonX = document.createElement("button");
+        buttonX.className = "cm-widget-buttons cm-widget-button-delete";
+        buttonX.textContent = "x";
+        buttonText.className = "cm-widget-buttons";
+        buttonText.textContent = this.text;
+        span.className = `cm-widget-button ${
+          this.type === "error"
+            ? "cm-widget-button-error"
+            : "cm-widget-button-gap"
+        }`;
+        buttonText.onclick = () => this.onClick(this.item);
+        buttonX.onclick = (e) => {
+          e.stopPropagation(); // Impede que o clique no 'x' acione o clique principal
+          this.onDelete(this.item.id);
+        };
+        span.appendChild(buttonText);
+        span.appendChild(buttonX);
+        return span;
+      }
+
+      ignoreEvent() {
+        return false; // Permite que o clique seja processado
+      }
+    }
+
+    return EditorView.decorations.compute(["doc"], (state) => {
+      const decorations = [];
+      // Filtra os itens para mostrar apenas os do tipo selecionado (erro ou lacuna)
+      const itemsToShow = window.errosLacuna.filter(
+        (item) => item.type === switchQuestionTemplate
+      );
+
+      // Itera sobre os itens filtrados
+      for (const item of itemsToShow) {
+        if (item.start < item.end && item.end <= state.doc.length) {
+          const text = state.doc.sliceString(item.start, item.end);
+          // Substitui o texto pelo nosso widget de botão
+          decorations.push(
+            Decoration.replace({
+              widget: new ButtonWidget(
+                text,
+                item.type,
+                item,
+                handleHighlightClick,
+                handleHighlightDelete
+              ),
+            }).range(item.start, item.end)
+          );
+        }
+      }
+      return Decoration.set(decorations);
+    });
+  }, [window.errosLacuna, openedError, openedGap, switchQuestionTemplate]);
+
+  // 2. Injeta os estilos para as decorações no documento
+  useEffect(() => {
+    const styleId = "codemirror-custom-highlights";
+    if (!document.getElementById(styleId)) {
+      const style = document.createElement("style");
+      style.id = styleId;
+      style.innerHTML = `
+        .cm-widget-button {
+          border: none;
+          border-radius: 5px;
+          padding: 3px 3px;
+          color: black;
+          cursor: pointer;
+          font-family: inherit;
+          font-size: 0.9em;
+          display: inline-flex; /* Garante alinhamento dos botões internos */
+          width: fit-content;
+        }
+        .cm-widget-button-error {
+          background-color: #d32f2f8a; /* Vermelho mais forte */
+        }
+        .cm-widget-button-gap {
+          background-color: #f57c008a; /* Laranja mais forte */
+        }
+        .cm-widget-button:hover {
+          filter: brightness(1.2);
+        }
+        .cm-widget-buttons {
+          border: none;
+          border-radius: none;
+          color: black;
+          cursor: pointer;
+          font-family: inherit;
+          font-size: 0.9em;
+          background-color: transparent
+        }
+        .cm-widget-button-delete {
+          margin-left: 4px;
+          font-weight: bold;
+          padding: 0 4px;
+          border-radius: 50%;
+          line-height: 1;
+        }
+      `;
+      document.head.appendChild(style);
+    }
+    // Não é necessário cleanup se o estilo deve persistir
+  }, []);
+
+  const theme = EditorView.theme({
+    "&.cm-focused": { outline: "none" },
+    ".cm-gutters": { borderRadius: "15px 0 0 15px" },
+  });
 
   const panResponder = useMemo(
     () =>
@@ -123,7 +287,6 @@ export default function Window({
           <Pressable
             style={styles.deleteButton}
             onPress={() => {
-              console.log("Botão pressionado, estado atual:", closed);
               setClosed(!closed);
             }}
           >
@@ -216,39 +379,98 @@ export default function Window({
               </View>
             ) : window.type === "codigo" ? (
               <View style={styles.editorContainer}>
-                <CodeMirror
-                  height="350px"
-                  extensions={[javascript(), EditorView.lineWrapping]}
-                  onChange={(code) =>
-                    updateWindow({ ...window, script: code })
-                  }
-                  basicSetup={{
-                    lineNumbers: true,
-                    foldGutter: false, //era p tirar o recuo a esquerda mas não funcionou
-                  }}
-                  style={{ fontSize: 16 }}
-                />
+                <View style={styles.viewSelectErroLacuna}>
+                  <View style={styles.divSwitchQuestionTemplate}>
+                    <Pressable
+                      style={
+                        switchQuestionTemplate == "error"
+                          ? styles.selectedSwitchQuestionTemplate
+                          : styles.notSelectedSwitchQuestionTemplate
+                      }
+                      onPress={() => {
+                        if (!abertoLacuna) {
+                          setSwitchQuestionTemplate("error");
+                        }
+                      }}
+                    >
+                      <Text
+                        style={
+                          switchQuestionTemplate == "error"
+                            ? { fontWeight: 500 }
+                            : { color: "white" }
+                        }
+                      >
+                        Erros
+                      </Text>
+                    </Pressable>
+                    <Pressable
+                      style={
+                        switchQuestionTemplate == "gap"
+                          ? styles.selectedSwitchQuestionTemplate
+                          : styles.notSelectedSwitchQuestionTemplate
+                      }
+                      onPress={() => {
+                        if (!abertoErro) {
+                          setSwitchQuestionTemplate("gap");
+                        }
+                      }}
+                    >
+                      <Text
+                        style={
+                          switchQuestionTemplate == "gap"
+                            ? { fontWeight: 500 }
+                            : { color: "white" }
+                        }
+                      >
+                        Lacunas
+                      </Text>
+                    </Pressable>
+                  </View>
+                </View>
+                <View style={{ flex: 1 }}>
+                  <CodeMirror
+                    height="100%"
+                    extensions={[
+                      javascript(),
+                      theme,
+                      EditorView.lineWrapping,
+                      highlightPlugin, // 3. Adiciona o plugin aqui
+                    ]}
+                    onChange={(code) =>
+                      updateWindow({ ...window, script: code })
+                    }
+                    basicSetup={{ lineNumbers: true }}
+                    style={{ fontSize: 16, height: "100%" }}
+                    onUpdate={(viewUpdate) => {
+                      const { from, to } = viewUpdate.state.selection.main;
+                      setStartSelection(from);
+                      setEndSelection(to);
+                    }}
+                  />
+                </View>
               </View>
             ) : (
               <Text></Text>
             )}
-            <TextInput
-              multiline={true}
-              numberOfLines={30}
-              placeholder="Escreva a pergunta da questão aqui..."
-              style={{
-                height: 80,
-                width: 280,
-                textAlignVertical: "top",
-                backgroundColor: "#6446DB",
-                //placeholderTextColor: "rgb(0, 0, 0)",
-                padding: 10,
-                outlineStyle: "none",
-              }}
-              onChangeText={(text) =>
-                updateWindow({ ...window, pergunta: text })
-              }
-            />
+            {window.type == "multiplaEscolha" && (
+              <TextInput
+                multiline={true}
+                numberOfLines={30}
+                placeholder="Escreva a pergunta da questão aqui..."
+                style={{
+                  height: 80,
+                  width: 280,
+                  textAlignVertical: "top",
+                  backgroundColor: "#6446DB",
+                  //placeholderTextColor: "rgb(0, 0, 0)",
+                  padding: 10,
+                  outlineStyle: "none",
+                }}
+                onChangeText={(text) =>
+                  updateWindow({ ...window, pergunta: text })
+                }
+              />
+            )}
           </View>
         )}
       </View>
@@ -283,6 +505,9 @@ export default function Window({
                       borderRadius: 15,
                       outlineStyle: "none",
                     }}
+                    onChange={(text) => {
+                      updateWindow({ ...window, descricao: text });
+                    }}
                   />
                 </View>
               )}
@@ -292,12 +517,35 @@ export default function Window({
               <Pressable
                 style={styles.popupIcon}
                 onPress={() => {
-                  setAbertoErro(!abertoErro);
-                  setAbertoLacuna(false);
-                  setAbertoDesc(false);
+                  if (abertoErro) {
+                    setAbertoErro(false);
+                  } else {
+                    const newId = Date.now();
+                    updateWindow({
+                      ...window,
+                      errosLacuna: [
+                        ...window.errosLacuna,
+                        {
+                          type: "error",
+                          start: startSelection,
+                          end: endSelection,
+                          id: newId,
+                        },
+                      ],
+                    });
+                    setOpenedError(newId);
+                    setAbertoErro(!abertoErro);
+                    setAbertoLacuna(false);
+                    setAbertoDesc(false);
+                    setStartSelection(0);
+                    setEndSelection(0);
+                  }
                 }}
               >
                 <Icon source="alert" size={20} color="black" />
+                {endSelection !== startSelection &&
+                  switchQuestionTemplate === "error" &&
+                  !abertoErro && <Text>Novo Erro</Text>}
               </Pressable>
               {abertoErro && (
                 <View style={styles.viewDesc}>
@@ -310,7 +558,16 @@ export default function Window({
                       padding: 10,
                       borderRadius: 15,
                     }}
-                  ></View>
+                  >
+                    <Text>
+                      Erro:{" "}
+                      {window.script.substring(
+                        window.errosLacuna.find((x) => x.id === openedError)
+                          .start,
+                        window.errosLacuna.find((x) => x.id === openedError).end
+                      )}
+                    </Text>
+                  </View>
                 </View>
               )}
               {abertoErro && <View style={{ height: 160 }}></View>}
@@ -319,12 +576,35 @@ export default function Window({
               <Pressable
                 style={styles.popupIcon}
                 onPress={() => {
-                  setAbertoLacuna(!abertoLacuna);
-                  setAbertoErro(false);
-                  setAbertoDesc(false);
+                  if (abertoLacuna) {
+                    setAbertoLacuna(false);
+                  } else {
+                    const newId = Date.now();
+                    updateWindow({
+                      ...window,
+                      errosLacuna: [
+                        ...window.errosLacuna,
+                        {
+                          type: "gap",
+                          start: startSelection,
+                          end: endSelection,
+                          id: newId,
+                        },
+                      ],
+                    });
+                    setOpenedGap(newId);
+                    setAbertoLacuna(true);
+                    setAbertoErro(false);
+                    setAbertoDesc(false);
+                    setStartSelection(0);
+                    setEndSelection(0);
+                  }
                 }}
               >
                 <Icon source="format-quote-close" size={20} color="black" />
+                {endSelection !== startSelection &&
+                  switchQuestionTemplate === "gap" &&
+                  !abertoLacuna && <Text>Nova Lacuna</Text>}
               </Pressable>
               {abertoLacuna && (
                 <View style={styles.viewDesc}>
@@ -337,7 +617,16 @@ export default function Window({
                       padding: 10,
                       borderRadius: 15,
                     }}
-                  ></View>
+                  >
+                    <Text>
+                      Lacuna:{" "}
+                      {window.script.substring(
+                        window.errosLacuna.find((x) => x.id === openedGap)
+                          .start,
+                        window.errosLacuna.find((x) => x.id === openedGap).end
+                      )}
+                    </Text>
+                  </View>
                 </View>
               )}
             </View>
@@ -643,7 +932,12 @@ export default function Window({
                             .map((r) => ({ label: r.nome, value: r.id }));
                           setRankItens(newRankItems);
                           setRank(null); // Reseta a seleção do rank
-                          updateWindow({ ...window, tipo: value, rankId: null, nivel: null });
+                          updateWindow({
+                            ...window,
+                            tipo: value,
+                            rankId: null,
+                            nivel: null,
+                          });
                         }}
                         placeholder="Selecione um tipo..."
                         listMode="SCROLLVIEW"
@@ -912,6 +1206,7 @@ const styles = StyleSheet.create({
     flexDirection: "column",
     gap: 10,
     paddingTop: 50,
+    alignItems: "flex-start", // Adicionado para evitar que os popups se estiquem
   },
   popupView: {
     padding: 0,
@@ -928,9 +1223,11 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.25,
     shadowRadius: 3.84,
     elevation: 6,
-    width: 40,
     height: 40,
     zIndex: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 5,
   },
   viewDesc: {
     position: "absolute",
@@ -1040,12 +1337,16 @@ const styles = StyleSheet.create({
     width: 210,
   },
   editorContainer: {
-    height: 350,
+    flex: 1,
     width: 280,
-    backgroundColor: "white", 
-    borderRadius: 15, 
+    backgroundColor: "white",
+    borderRadius: 15,
     overflow: "hidden",
-    borderWidth: 0, 
-    outlineStyle: "none",
+    paddingTop: 10,
+  },
+  viewSelectErroLacuna: {
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
   },
 });
