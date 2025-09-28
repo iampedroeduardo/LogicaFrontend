@@ -3,6 +3,7 @@ import {
   Animated,
   PanResponder,
   Pressable,
+  ScrollView,
   StyleSheet,
   Text,
   TextInput,
@@ -65,6 +66,9 @@ export default function Window({
   const [endSelection, setEndSelection] = useState(0);
   const [openedError, setOpenedError] = useState(0);
   const [openedGap, setOpenedGap] = useState(0); // Estado para a lacuna aberta
+  const [isDragging, setIsDragging] = useState(false);
+
+  const [inputText, setInputText] = useState(""); //inputText
 
   // Função para lidar com o clique no widget do editor
   const handleHighlightClick = (item) => {
@@ -127,6 +131,10 @@ export default function Window({
           this.type === "error"
             ? "cm-widget-button-error"
             : "cm-widget-button-gap"
+        }${
+          openedError === this.item.id || openedGap === this.item.id
+            ? " active"
+            : ""
         }`;
         buttonText.onclick = () => this.onClick(this.item);
         buttonX.onclick = (e) => {
@@ -149,7 +157,7 @@ export default function Window({
       const itemsToShow = window.errosLacuna.filter(
         (item) => item.type === switchQuestionTemplate
       );
-
+      itemsToShow.sort((a, b) => a.start - b.start);
       // Itera sobre os itens filtrados
       for (const item of itemsToShow) {
         if (item.start < item.end && item.end <= state.doc.length) {
@@ -189,12 +197,7 @@ export default function Window({
           font-size: 0.9em;
           display: inline-flex; /* Garante alinhamento dos botões internos */
           width: fit-content;
-        }
-        .cm-widget-button-error {
-          background-color: #d32f2f8a; /* Vermelho mais forte */
-        }
-        .cm-widget-button-gap {
-          background-color: #f57c008a; /* Laranja mais forte */
+          background-color: #B1FF9C; 
         }
         .cm-widget-button:hover {
           filter: brightness(1.2);
@@ -215,6 +218,9 @@ export default function Window({
           border-radius: 50%;
           line-height: 1;
         }
+        .active{
+          background-color: #78c862ff;
+        }
       `;
       document.head.appendChild(style);
     }
@@ -231,6 +237,7 @@ export default function Window({
       PanResponder.create({
         onMoveShouldSetPanResponder: () => true,
         onPanResponderGrant: () => {
+          setIsDragging(true);
           pan.setOffset({
             x: pan.x._value,
             y: pan.y._value,
@@ -255,6 +262,7 @@ export default function Window({
           });
         },
         onPanResponderRelease: () => {
+          setIsDragging(false);
           pan.flattenOffset();
           updateWindow({
             ...window,
@@ -266,10 +274,7 @@ export default function Window({
     [closed, width, height]
   );
   return (
-    <Animated.View
-      style={[styles.window, pan.getLayout()]}
-      {...panResponder.panHandlers}
-    >
+    <Animated.View style={[styles.window, pan.getLayout()]}>
       <View style={styles.questionView}>
         <View style={styles.titleView}>
           {window.type === "minhasQuestoes" ? (
@@ -292,6 +297,15 @@ export default function Window({
           >
             <Icon source={closed ? "eye-off" : "eye"} size={14} color="black" />
           </Pressable>
+          <Animated.View
+            style={[
+              styles.deleteButton,
+              { cursor: isDragging ? "grabbing" : "grab" },
+            ]}
+            {...panResponder.panHandlers}
+          >
+            <Icon source="drag" size={14} color="black" />
+          </Animated.View>
         </View>
         {!closed && (
           <View style={styles.questionContent}>
@@ -388,9 +402,10 @@ export default function Window({
                           : styles.notSelectedSwitchQuestionTemplate
                       }
                       onPress={() => {
-                        if (!abertoLacuna) {
-                          setSwitchQuestionTemplate("error");
+                        if (abertoLacuna) {
+                          setAbertoLacuna(false);
                         }
+                        setSwitchQuestionTemplate("error");
                       }}
                     >
                       <Text
@@ -410,9 +425,10 @@ export default function Window({
                           : styles.notSelectedSwitchQuestionTemplate
                       }
                       onPress={() => {
-                        if (!abertoErro) {
-                          setSwitchQuestionTemplate("gap");
+                        if (abertoErro) {
+                          setAbertoErro(false);
                         }
+                        setSwitchQuestionTemplate("gap");
                       }}
                     >
                       <Text
@@ -436,15 +452,42 @@ export default function Window({
                       EditorView.lineWrapping,
                       highlightPlugin, // 3. Adiciona o plugin aqui
                     ]}
-                    onChange={(code) =>
-                      updateWindow({ ...window, script: code })
-                    }
+                    onChange={(code, viewUpdate) => {
+                      let newErrosLacuna = [...window.errosLacuna];
+                      if (viewUpdate.docChanged) {
+                        newErrosLacuna = newErrosLacuna
+                          .map((item) => {
+                            const newStart = viewUpdate.changes.mapPos(
+                              item.start,
+                              1
+                            );
+                            const newEnd = viewUpdate.changes.mapPos(
+                              item.end,
+                              -1
+                            );
+                            return { ...item, start: newStart, end: newEnd };
+                          })
+                          .filter((item) => item.start !== item.end); // Remove itens cujo texto foi totalmente deletado
+                      }
+
+                      updateWindow({
+                        ...window,
+                        script: code,
+                        errosLacuna: newErrosLacuna,
+                      });
+                    }}
                     basicSetup={{ lineNumbers: true }}
                     style={{ fontSize: 16, height: "100%" }}
                     onUpdate={(viewUpdate) => {
-                      const { from, to } = viewUpdate.state.selection.main;
-                      setStartSelection(from);
-                      setEndSelection(to);
+                      // Apenas atualiza o estado da seleção se ela mudar
+                      if (viewUpdate.selectionSet) {
+                        const { from, to } = viewUpdate.state.selection.main;
+                        // Evita re-renderizações desnecessárias se a seleção não mudou
+                        if (from !== startSelection || to !== endSelection) {
+                          setStartSelection(from);
+                          setEndSelection(to);
+                        }
+                      }
                     }}
                   />
                 </View>
@@ -516,29 +559,37 @@ export default function Window({
             <View style={styles.popupView}>
               <Pressable
                 style={styles.popupIcon}
-                onPress={() => {
-                  if (abertoErro) {
-                    setAbertoErro(false);
-                  } else {
-                    const newId = Date.now();
-                    updateWindow({
-                      ...window,
-                      errosLacuna: [
-                        ...window.errosLacuna,
-                        {
-                          type: "error",
-                          start: startSelection,
-                          end: endSelection,
-                          id: newId,
-                        },
-                      ],
-                    });
-                    setOpenedError(newId);
-                    setAbertoErro(!abertoErro);
-                    setAbertoLacuna(false);
-                    setAbertoDesc(false);
-                    setStartSelection(0);
-                    setEndSelection(0);
+                onPress={async () => {
+                  if (
+                    (switchQuestionTemplate === "error" &&
+                      startSelection !== endSelection) ||
+                    abertoErro
+                  ) {
+                    if (abertoErro) {
+                      setAbertoErro(false);
+                      setOpenedError(null);
+                    } else {
+                      const newId = Date.now();
+                      await updateWindow({
+                        ...window,
+                        errosLacuna: [
+                          ...window.errosLacuna,
+                          {
+                            type: "error",
+                            start: startSelection,
+                            end: endSelection,
+                            id: newId,
+                            distratores: [],
+                          },
+                        ],
+                      });
+                      setOpenedError(newId);
+                      setAbertoErro(!abertoErro);
+                      setAbertoLacuna(false);
+                      setAbertoDesc(false);
+                      setStartSelection(0);
+                      setEndSelection(0);
+                    }
                   }
                 }}
               >
@@ -550,7 +601,7 @@ export default function Window({
               {abertoErro && (
                 <View style={styles.viewDesc}>
                   <Text>Encontre o Erro</Text>
-                  <View
+                  <ScrollView
                     style={{
                       height: 137.6,
                       width: 230,
@@ -558,16 +609,107 @@ export default function Window({
                       padding: 10,
                       borderRadius: 15,
                     }}
+                    showsVerticalScrollIndicator={false}
                   >
-                    <Text>
-                      Erro:{" "}
-                      {window.script.substring(
-                        window.errosLacuna.find((x) => x.id === openedError)
-                          .start,
-                        window.errosLacuna.find((x) => x.id === openedError).end
-                      )}
-                    </Text>
-                  </View>
+                    <View
+                      style={{
+                        flexDirection: "row",
+                        gap: 5,
+                        alignItems: "center",
+                      }}
+                    >
+                      <Text style={styles.erroLacunaText}>Erro:</Text>
+                      <Text style={styles.erroLacunaInput}>
+                        {window.script.substring(
+                          window.errosLacuna.find((x) => x.id === openedError)
+                            .start,
+                          window.errosLacuna.find((x) => x.id === openedError)
+                            .end
+                        )}
+                      </Text>
+                      <Icon
+                        source="arrow-right-thin"
+                        size={20}
+                        color="#6446DB"
+                      />
+                      <TextInput
+                        style={styles.erroLacunaInput}
+                        placeholder="Digite"
+                        onChangeText={(text) => {
+                          setInputText(text);
+                        }}
+                        value={inputText}
+                        onKeyPress={(event) => {
+                          if (event.nativeEvent.key === "Enter") {
+                            event.preventDefault();
+                            updateWindow({
+                              ...window,
+                              errosLacuna: window.errosLacuna.map((item) => {
+                                if (item.id === openedError) {
+                                  return {
+                                    ...item,
+                                    distratores: [
+                                      ...item.distratores,
+                                      { text: inputText, id: Date.now() },
+                                    ],
+                                  };
+                                }
+                                return item;
+                              }),
+                            });
+                            setInputText("");
+                          }
+                        }}
+                      ></TextInput>
+                    </View>
+                    <View
+                      style={{
+                        flexDirection: "row",
+                        marginTop: 10,
+                        flexWrap: "wrap",
+                        gap: 5,
+                      }}
+                    >
+                      <Text style={styles.erroLacunaText}>
+                        Opções Alternativas:
+                      </Text>
+                      {window.errosLacuna
+                        .find((x) => x.id === openedError)
+                        .distratores.map((x) => {
+                          console.log(x);
+                          return (
+                            <View key={x.id} style={styles.erroLacunaInput}>
+                              <Text style={styles.distratorText}>
+                                {x.text}
+                              </Text>
+                              <Pressable
+                                onPress={() => {
+                                  updateWindow({
+                                    ...window,
+                                    errosLacuna: window.errosLacuna.map(
+                                      (item) => {
+                                        if (item.id === openedError) {
+                                          return {
+                                            ...item,
+                                            distratores:
+                                              item.distratores.filter(
+                                                (y) => y.id !== x.id
+                                              ),
+                                          };
+                                        }
+                                        return item;
+                                      }
+                                    ),
+                                  });
+                                }}
+                              >
+                                <Icon source="close" size={10} color="black" />
+                              </Pressable>
+                            </View>
+                          );
+                        })}
+                    </View>
+                  </ScrollView>
                 </View>
               )}
               {abertoErro && <View style={{ height: 160 }}></View>}
@@ -576,28 +718,36 @@ export default function Window({
               <Pressable
                 style={styles.popupIcon}
                 onPress={() => {
-                  if (abertoLacuna) {
-                    setAbertoLacuna(false);
-                  } else {
-                    const newId = Date.now();
-                    updateWindow({
-                      ...window,
-                      errosLacuna: [
-                        ...window.errosLacuna,
-                        {
-                          type: "gap",
-                          start: startSelection,
-                          end: endSelection,
-                          id: newId,
-                        },
-                      ],
-                    });
-                    setOpenedGap(newId);
-                    setAbertoLacuna(true);
-                    setAbertoErro(false);
-                    setAbertoDesc(false);
-                    setStartSelection(0);
-                    setEndSelection(0);
+                  if (
+                    (switchQuestionTemplate === "gap" &&
+                      startSelection !== endSelection) ||
+                    abertoLacuna
+                  ) {
+                    if (abertoLacuna) {
+                      setAbertoLacuna(false);
+                      setOpenedGap(null);
+                    } else {
+                      const newId = Date.now();
+                      updateWindow({
+                        ...window,
+                        errosLacuna: [
+                          ...window.errosLacuna,
+                          {
+                            type: "gap",
+                            start: startSelection,
+                            end: endSelection,
+                            distratores: [],
+                            id: newId,
+                          },
+                        ],
+                      });
+                      setOpenedGap(newId);
+                      setAbertoLacuna(true);
+                      setAbertoErro(false);
+                      setAbertoDesc(false);
+                      setStartSelection(0);
+                      setEndSelection(0);
+                    }
                   }
                 }}
               >
@@ -609,24 +759,104 @@ export default function Window({
               {abertoLacuna && (
                 <View style={styles.viewDesc}>
                   <Text>Complete o código</Text>
-                  <View
+                  <ScrollView
                     style={{
                       height: 137.6,
                       width: 230,
                       backgroundColor: "#EEEEEE",
                       padding: 10,
                       borderRadius: 15,
+                      gap: 10,
                     }}
+                    showsVerticalScrollIndicator={false}
+                    keyboardShouldPersistTaps="handled"
                   >
-                    <Text>
-                      Lacuna:{" "}
-                      {window.script.substring(
-                        window.errosLacuna.find((x) => x.id === openedGap)
-                          .start,
-                        window.errosLacuna.find((x) => x.id === openedGap).end
-                      )}
-                    </Text>
-                  </View>
+                    <View style={{ flexDirection: "row", gap: 5 }}>
+                      <Text style={styles.erroLacunaText}>Lacuna:</Text>
+                      <Text style={styles.erroLacunaInput}>
+                        {window.script.substring(
+                          window.errosLacuna.find((x) => x.id === openedGap)
+                            .start,
+                          window.errosLacuna.find((x) => x.id === openedGap).end
+                        )}
+                      </Text>
+                    </View>
+                    <View
+                      style={{
+                        flexDirection: "row",
+                        marginTop: 10,
+                        flexWrap: "wrap",
+                        gap: 5,
+                      }}
+                    >
+                      <Text style={styles.erroLacunaText}>Distratores:</Text>
+                      <TextInput
+                        style={styles.erroLacunaInput}
+                        placeholder="Digite"
+                        onChangeText={(text) => {
+                          setInputText(text);
+                        }}
+                        value={inputText}
+                        onKeyPress={(event) => {
+                          if (event.nativeEvent.key === "Enter") {
+                            event.preventDefault();
+                            updateWindow({
+                              ...window,
+                              errosLacuna: window.errosLacuna.map((item) => {
+                                if (item.id === openedGap) {
+                                  return {
+                                    ...item,
+                                    distratores: [
+                                      ...item.distratores,
+                                      { text: inputText, id: Date.now() },
+                                    ],
+                                  };
+                                }
+                                return item;
+                              }),
+                            });
+                            setInputText("");
+                          }
+                        }}
+                      ></TextInput>
+                      {window.errosLacuna
+                        .find((x) => x.id === openedGap)
+                        .distratores.map((x) => {
+                          console.log(x);
+                          return (
+                            <View key={x.id} style={styles.erroLacunaInput}>
+                              <Text style={styles.distratorText}>
+                                {x.text}
+                              </Text>
+                              <Pressable
+                                style={styles.erroLacunaX}
+                                onPress={() => {
+                                  updateWindow({
+                                    ...window,
+                                    errosLacuna: window.errosLacuna.map(
+                                      (item) => {
+                                        if (item.id === openedGap) {
+                                          return {
+                                            ...item,
+                                            distratores:
+                                              item.distratores.filter(
+                                                (y) => y.id !== x.id
+                                              ),
+                                          };
+                                        }
+                                        return item;
+                                      }
+                                    ),
+                                  });
+                                }}
+                              >
+                                <Icon source="close" size={10} color="black" />
+                              </Pressable>
+                            </View>
+                          );
+                        })}
+                    </View>
+                  </ScrollView>
                 </View>
               )}
             </View>
@@ -1349,4 +1579,31 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
+  erroLacunaText: {
+    color: "#6446DB",
+    fontSize: 16,
+  },
+  erroLacunaInput: {
+    backgroundColor: "#BFECFF",
+    display: "flex",
+    flexDirection: "row",
+    padding: 5,
+    outlineColor: "grey",
+    borderRadius: 15,
+    minWidth: 80,
+    textAlign: "center",
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 5,
+  },
+  distratorText: {
+    color: 'black'
+  }
 });

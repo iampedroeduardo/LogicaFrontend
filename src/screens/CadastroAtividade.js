@@ -1,28 +1,28 @@
-import React, { useEffect, useState } from "react";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { LinearGradient } from "expo-linear-gradient";
+import { useEffect, useState } from "react";
 import {
-  StyleSheet,
-  View,
-  Text,
   Image,
   Pressable,
-  useWindowDimensions,
   ScrollView,
+  StyleSheet,
+  Text,
+  useWindowDimensions,
+  View,
 } from "react-native";
 import {
   Appbar,
-  Menu,
-  Divider,
-  Icon,
   Button,
   Dialog,
+  Divider,
+  Icon,
+  Menu,
   Portal,
   Snackbar,
 } from "react-native-paper";
-import Logo from "../components/Logo.js";
-import { LinearGradient } from "expo-linear-gradient";
-import AsyncStorage from "@react-native-async-storage/async-storage";
-import Window from "../components/Window.js";
 import instance from "../axios.js";
+import Logo from "../components/Logo.js";
+import Window from "../components/Window.js";
 
 const imagensPerfil = {
   preto_none: require("../../assets/images/perfil_preto_none.png"),
@@ -364,7 +364,7 @@ export default function CadastroAtividade({ navigation }) {
         ) : (
           windows.map((window, index) => (
             <Window
-              key={index}
+              key={window.id}
               window={window}
               ranks={ranks}
               usuario={usuario}
