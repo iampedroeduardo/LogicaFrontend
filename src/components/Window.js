@@ -62,6 +62,11 @@ export default function Window({
     { label: "Raciocínio Lógico", value: "RaciocinioLogico" },
     { label: "Programação", value: "Programacao" },
   ]);
+  const [openCategoria, setOpenCategoria] = useState(false);
+  const [categoria, setCategoria] = useState(false);
+  const [categorias, setCategorias] = useState([
+    { label: "Laços de Repetição", value: "LacosDeRepeticao" },
+  ]);
   const [startSelection, setStartSelection] = useState(0);
   const [endSelection, setEndSelection] = useState(0);
   const [openedError, setOpenedError] = useState(0);
@@ -521,93 +526,154 @@ export default function Window({
         !closed &&
         (window.type === "codigo" ? (
           <View style={styles.questionPopups}>
-            {usuario.adm && (
-              <View style={styles.popupView}>
-                <Pressable
-                  style={styles.popupIcon}
-                  onPress={() => {
-                    setAbertoConfig(!abertoConfig);
-                  }}
-                >
-                  <Icon source="cog" size={20} color="black" />
-                </Pressable>
-                {abertoConfig && (
-                  <View style={styles.viewDesc}>
-                    <Text>Configurações</Text>
-                    <View
-                      style={{
-                        width: 230,
-                        backgroundColor: "#EEEEEE",
-                        padding: 10,
-                        borderRadius: 15,
+            <View style={styles.popupView}>
+              <Pressable
+                style={styles.popupIcon}
+                onPress={() => {
+                  setAbertoConfig(!abertoConfig);
+                }}
+              >
+                <Icon source="cog" size={20} color="black" />
+              </Pressable>
+              {abertoConfig && (
+                <View style={styles.viewDesc}>
+                  <Text>Configurações</Text>
+                  <View
+                    style={{
+                      width: 230,
+                      backgroundColor: "#EEEEEE",
+                      padding: 10,
+                      borderRadius: 15,
+                    }}
+                  >
+                    <Text>Categoria:</Text>
+                    <DropDownPicker
+                      zIndex={5000}
+                      style={styles.picker}
+                      items={categorias}
+                      value={categoria}
+                      open={openCategoria}
+                      setItems={setCategorias}
+                      setOpen={setOpenCategoria}
+                      setValue={setCategoria}
+                      onOpen={() => {
+                        setOpenRank(false);
                       }}
-                    >
-                      <Text>Rank:</Text>
-                      <DropDownPicker
-                        zIndex={4000}
-                        style={styles.picker}
-                        items={rankItens}
-                        value={rank}
-                        open={openRank}
-                        setItems={setRankItens}
-                        setOpen={setOpenRank}
-                        setValue={setRank}
-                        onOpen={() => {
-                          setOpenTipo(false);
-                          setOpenNivel(false);
-                        }}
-                        onChangeValue={(value) => {
-                          updateWindow({ ...window, rankId: value });
-                        }}
-                        placeholder="Selecione um rank..."
-                        listMode="SCROLLVIEW"
-                        dropDownContainerStyle={{
-                          zIndex: 4000,
-                          backgroundColor: "white",
-                          borderWidth: 0,
-                          borderRadius: 20,
-                          width: 210,
-                          maxHeight: 140,
-                          shadowColor: "#000",
-                          shadowOffset: {
-                            width: 0,
-                            height: 2,
-                          },
-                          shadowOpacity: 0.25,
-                          shadowRadius: 3.84,
-                          elevation: 5,
-                        }}
-                        // Estilo de cada item da lista
-                        listItemContainerStyle={{
-                          backgroundColor: "white",
-                          borderWidth: 0,
-                          height: 45,
-                        }}
-                        // Estilo do texto de cada item
-                        listItemLabelStyle={{
-                          color: "#333",
-                          fontSize: 14,
-                        }}
-                        selectedItemLabelStyle={{
-                          color: "#6200ee",
-                          fontWeight: "bold",
-                        }}
-                        // Estilo do placeholder
-                        placeholderStyle={{
-                          color: "grey",
-                        }}
-                        // Estilo da seta
-                        arrowIconStyle={{
-                          tintColor: "#6200ee",
-                        }}
-                      />
-                      
-                    </View>
+                      onSelectItem={(item) => {
+                        updateWindow({
+                          ...window,
+                          categoria: item.value,
+                        });
+                      }}
+                      placeholder="Selecione uma categoria..."
+                      listMode="SCROLLVIEW"
+                      dropDownContainerStyle={{
+                        zIndex: 5000,
+                        backgroundColor: "white",
+                        borderWidth: 0,
+                        borderRadius: 20,
+                        width: 210,
+                        shadowColor: "#000",
+                        shadowOffset: {
+                          width: 0,
+                          height: 2,
+                        },
+                        shadowOpacity: 0.25,
+                        shadowRadius: 3.84,
+                        elevation: 5,
+                      }}
+                      // Estilo de cada item da lista
+                      listItemContainerStyle={{
+                        backgroundColor: "white",
+                        borderWidth: 0,
+                        height: 45,
+                      }}
+                      // Estilo do texto de cada item
+                      listItemLabelStyle={{
+                        color: "#333",
+                        fontSize: 14,
+                      }}
+                      selectedItemLabelStyle={{
+                        color: "#6200ee",
+                        fontWeight: "bold",
+                      }}
+                      // Estilo do placeholder
+                      placeholderStyle={{
+                        color: "grey",
+                      }}
+                      // Estilo da seta
+                      arrowIconStyle={{
+                        tintColor: "#6200ee",
+                      }}
+                    />
+                    {usuario.adm && (
+                      <View>
+                        <Text>Rank:</Text>
+                        <DropDownPicker
+                          zIndex={4000}
+                          style={styles.picker}
+                          items={rankItens}
+                          value={rank}
+                          open={openRank}
+                          setItems={setRankItens}
+                          setOpen={setOpenRank}
+                          setValue={setRank}
+                          onOpen={() => {
+                            setOpenTipo(false);
+                            setOpenNivel(false);
+                          }}
+                          onChangeValue={(value) => {
+                            updateWindow({ ...window, rankId: value });
+                          }}
+                          placeholder="Selecione um rank..."
+                          listMode="SCROLLVIEW"
+                          dropDownContainerStyle={{
+                            zIndex: 4000,
+                            backgroundColor: "white",
+                            borderWidth: 0,
+                            borderRadius: 20,
+                            width: 210,
+                            maxHeight: 140,
+                            shadowColor: "#000",
+                            shadowOffset: {
+                              width: 0,
+                              height: 2,
+                            },
+                            shadowOpacity: 0.25,
+                            shadowRadius: 3.84,
+                            elevation: 5,
+                          }}
+                          // Estilo de cada item da lista
+                          listItemContainerStyle={{
+                            backgroundColor: "white",
+                            borderWidth: 0,
+                            height: 45,
+                          }}
+                          // Estilo do texto de cada item
+                          listItemLabelStyle={{
+                            color: "#333",
+                            fontSize: 14,
+                          }}
+                          selectedItemLabelStyle={{
+                            color: "#6200ee",
+                            fontWeight: "bold",
+                          }}
+                          // Estilo do placeholder
+                          placeholderStyle={{
+                            color: "grey",
+                          }}
+                          // Estilo da seta
+                          arrowIconStyle={{
+                            tintColor: "#6200ee",
+                          }}
+                        />
+                      </View>
+                    )}
                   </View>
-                )}
-                {abertoConfig && <View style={{ height: 280 }}></View>}
-              </View>
-            )}
+                </View>
+              )}
+              {abertoConfig && <View style={{ height: 280 }}></View>}
+            </View>
             {!abertoConfig && (
               <>
                 <View style={styles.popupView}>
@@ -721,50 +787,57 @@ export default function Window({
                           </Text>
                         </View>
                         {/* aqui vai a dificuldade erro */}
-                        <View style={{
-                          flexDirection: "row",
-                          gap: 5,
-                          alignItems: "center",
-                          marginTop: 5,
-                        }}>
-                          <Text style={styles.erroLacunaText}>Nível: </Text>
-                          <Pressable
-                            style={[
-                              styles.erroLacunaNivel,
-                              {
-                                backgroundColor:
-                                  window.errosLacuna.find(
-                                    (x) => x.id === openedError
-                                  )?.nivel === 0
-                                    ? "#9CEC86"
-                                    : window.errosLacuna.find((x) => x.id === openedError)?.nivel === 1
-                                    ? "#ece286ff"
-                                    : "#FF9999",
-                              },
-                            ]}
-                            onPress={() => {
-                              updateWindow({
-                                ...window,
-                                errosLacuna: window.errosLacuna.map((item) => {
-                                  if (item.id === openedError) {
-                                    const novoNivel = (item.nivel + 1) % 3;
-                                    return { ...item, nivel: novoNivel };
-
-                                  }
-                                  return item;
-                                }),
-                              });
+                        {usuario.adm && (
+                          <View
+                            style={{
+                              flexDirection: "row",
+                              gap: 5,
+                              alignItems: "center",
+                              marginTop: 5,
                             }}
                           >
-                            <Text>
-                              {"+".repeat(
-                                (window.errosLacuna.find(
-                                  (x) => x.id === openedError
-                                )?.nivel || 0) + 1
-                              )}
-                            </Text>
-                          </Pressable>
+                            <Text style={styles.erroLacunaText}>Nível: </Text>
+                            <Pressable
+                              style={[
+                                styles.erroLacunaNivel,
+                                {
+                                  backgroundColor:
+                                    window.errosLacuna.find(
+                                      (x) => x.id === openedError
+                                    )?.nivel === 0
+                                      ? "#9CEC86"
+                                      : window.errosLacuna.find(
+                                          (x) => x.id === openedError
+                                        )?.nivel === 1
+                                      ? "#ece286ff"
+                                      : "#FF9999",
+                                },
+                              ]}
+                              onPress={() => {
+                                updateWindow({
+                                  ...window,
+                                  errosLacuna: window.errosLacuna.map(
+                                    (item) => {
+                                      if (item.id === openedError) {
+                                        const novoNivel = (item.nivel + 1) % 3;
+                                        return { ...item, nivel: novoNivel };
+                                      }
+                                      return item;
+                                    }
+                                  ),
+                                });
+                              }}
+                            >
+                              <Text>
+                                {"+".repeat(
+                                  (window.errosLacuna.find(
+                                    (x) => x.id === openedError
+                                  )?.nivel || 0) + 1
+                                )}
+                              </Text>
+                            </Pressable>
                           </View>
+                        )}
                         <View
                           style={{
                             flexDirection: "row",
@@ -812,10 +885,7 @@ export default function Window({
                             .distratores.map((x) => {
                               console.log(x);
                               return (
-                                <View
-                                  key={x.id}
-                                  style={styles.erroLacunaInput}
-                                >
+                                <View key={x.id} style={styles.erroLacunaInput}>
                                   <Text style={styles.distratorText}>
                                     {x.text}
                                   </Text>
@@ -879,6 +949,7 @@ export default function Window({
                                 end: endSelection,
                                 distratores: [],
                                 id: newId,
+                                nivel: 0, // Inicializa o nível da lacuna
                               },
                             ],
                           });
@@ -892,11 +963,7 @@ export default function Window({
                       }
                     }}
                   >
-                    <Icon
-                      source="format-quote-close"
-                      size={20}
-                      color="black"
-                    />
+                    <Icon source="format-quote-close" size={20} color="black" />
                     {endSelection !== startSelection &&
                       switchQuestionTemplate === "gap" &&
                       !abertoLacuna && <Text>Nova Lacuna</Text>}
@@ -920,15 +987,64 @@ export default function Window({
                           <Text style={styles.erroLacunaText}>Lacuna:</Text>
                           <Text style={styles.erroLacunaInput}>
                             {window.script.substring(
-                              window.errosLacuna.find(
-                                (x) => x.id === openedGap
-                              ).start,
-                              window.errosLacuna.find(
-                                (x) => x.id === openedGap
-                              ).end
+                              window.errosLacuna.find((x) => x.id === openedGap)
+                                .start,
+                              window.errosLacuna.find((x) => x.id === openedGap)
+                                .end
                             )}
                           </Text>
                         </View>
+                        {usuario.adm && (
+                          <View
+                            style={{
+                              flexDirection: "row",
+                              gap: 5,
+                              alignItems: "center",
+                              marginTop: 5,
+                            }}
+                          >
+                            <Text style={styles.erroLacunaText}>Nível: </Text>
+                            <Pressable
+                              style={[
+                                styles.erroLacunaNivel,
+                                {
+                                  backgroundColor:
+                                    window.errosLacuna.find(
+                                      (x) => x.id === openedGap
+                                    )?.nivel === 0
+                                      ? "#9CEC86"
+                                      : window.errosLacuna.find(
+                                          (x) => x.id === openedGap
+                                        )?.nivel === 1
+                                      ? "#ece286ff"
+                                      : "#FF9999",
+                                },
+                              ]}
+                              onPress={() => {
+                                updateWindow({
+                                  ...window,
+                                  errosLacuna: window.errosLacuna.map(
+                                    (item) => {
+                                      if (item.id === openedGap) {
+                                        const novoNivel = (item.nivel + 1) % 3;
+                                        return { ...item, nivel: novoNivel };
+                                      }
+                                      return item;
+                                    }
+                                  ),
+                                });
+                              }}
+                            >
+                              <Text>
+                                {"+".repeat(
+                                  (window.errosLacuna.find(
+                                    (x) => x.id === openedGap
+                                  )?.nivel || 0) + 1
+                                )}
+                              </Text>
+                            </Pressable>
+                          </View>
+                        )}
                         <View
                           style={{
                             flexDirection: "row",
@@ -979,10 +1095,7 @@ export default function Window({
                             .distratores.map((x) => {
                               console.log(x);
                               return (
-                                <View
-                                  key={x.id}
-                                  style={styles.erroLacunaInput}
-                                >
+                                <View key={x.id} style={styles.erroLacunaInput}>
                                   <Text style={styles.distratorText}>
                                     {x.text}
                                   </Text>
@@ -1027,221 +1140,248 @@ export default function Window({
           </View>
         ) : (
           <View style={styles.questionPopups}>
-            {usuario.adm && (
-              <View style={styles.popupView}>
-                <Pressable
-                  style={styles.popupIcon}
-                  onPress={() => {
-                    setAbertoConfig(!abertoConfig);
-                  }}
-                >
-                  <Icon source="cog" size={20} color="black" />
-                </Pressable>
-                {abertoConfig && (
-                  <View style={styles.viewDesc}>
-                    <Text>Configurações</Text>
-                    <View
-                      style={{
-                        width: 230,
-                        backgroundColor: "#EEEEEE",
-                        padding: 10,
-                        borderRadius: 15,
+            <View style={styles.popupView}>
+              <Pressable
+                style={styles.popupIcon}
+                onPress={() => {
+                  setAbertoConfig(!abertoConfig);
+                }}
+              >
+                <Icon source="cog" size={20} color="black" />
+              </Pressable>
+              {abertoConfig && (
+                <View style={styles.viewDesc}>
+                  <Text>Configurações</Text>
+                  <View
+                    style={{
+                      width: 230,
+                      backgroundColor: "#EEEEEE",
+                      padding: 10,
+                      borderRadius: 15,
+                    }}
+                  >
+                    <Text>Categoria:</Text>
+                    <DropDownPicker
+                      zIndex={5000}
+                      style={styles.picker}
+                      items={categorias}
+                      value={categoria}
+                      open={openCategoria}
+                      setItems={setCategorias}
+                      setOpen={setOpenCategoria}
+                      setValue={setCategoria}
+                      onOpen={() => {
+                        setOpenRank(false);
                       }}
-                    >
-                      <Text>Tipo:</Text>
-                      <DropDownPicker
-                        zIndex={5000}
-                        style={styles.picker}
-                        items={tipos}
-                        value={tipo}
-                        open={openTipo}
-                        setItems={setTipos}
-                        setOpen={setOpenTipo}
-                        setValue={setTipo}
-                        onOpen={() => {
-                          setOpenRank(false);
-                          setOpenNivel(false);
-                        }}
-                        onSelectItem={(item) => {
-                          const value = item.value; // `value` é o novo tipo selecionado
-                          // Filtra a lista original de `ranks` com base no tipo
-                          const newRankItems = ranks
-                            .filter((r) => r.tipo === value)
-                            .map((r) => ({ label: r.nome, value: r.id }));
-                          setRankItens(newRankItems);
-                          setRank(null); // Reseta a seleção do rank
-                          updateWindow({
-                            ...window,
-                            tipo: value,
-                            rankId: null,
-                            nivel: null,
-                          });
-                        }}
-                        placeholder="Selecione um tipo..."
-                        listMode="SCROLLVIEW"
-                        dropDownContainerStyle={{
-                          zIndex: 5000,
-                          backgroundColor: "white",
-                          borderWidth: 0,
-                          borderRadius: 20,
-                          width: 210,
-                          shadowColor: "#000",
-                          shadowOffset: {
-                            width: 0,
-                            height: 2,
-                          },
-                          shadowOpacity: 0.25,
-                          shadowRadius: 3.84,
-                          elevation: 5,
-                        }}
-                        // Estilo de cada item da lista
-                        listItemContainerStyle={{
-                          backgroundColor: "white",
-                          borderWidth: 0,
-                          height: 45,
-                        }}
-                        // Estilo do texto de cada item
-                        listItemLabelStyle={{
-                          color: "#333",
-                          fontSize: 14,
-                        }}
-                        selectedItemLabelStyle={{
-                          color: "#6200ee",
-                          fontWeight: "bold",
-                        }}
-                        // Estilo do placeholder
-                        placeholderStyle={{
-                          color: "grey",
-                        }}
-                        // Estilo da seta
-                        arrowIconStyle={{
-                          tintColor: "#6200ee",
-                        }}
-                      />
-                      <Text>Rank:</Text>
-                      <DropDownPicker
-                        zIndex={4000}
-                        style={styles.picker}
-                        items={rankItens}
-                        value={rank}
-                        open={openRank}
-                        setItems={setRankItens}
-                        setOpen={setOpenRank}
-                        setValue={setRank}
-                        onOpen={() => {
-                          setOpenTipo(false);
-                          setOpenNivel(false);
-                        }}
-                        onChangeValue={(value) => {
-                          updateWindow({ ...window, rankId: value });
-                        }}
-                        placeholder="Selecione um rank..."
-                        listMode="SCROLLVIEW"
-                        dropDownContainerStyle={{
-                          zIndex: 4000,
-                          backgroundColor: "white",
-                          borderWidth: 0,
-                          borderRadius: 20,
-                          width: 210,
-                          maxHeight: 140,
-                          shadowColor: "#000",
-                          shadowOffset: {
-                            width: 0,
-                            height: 2,
-                          },
-                          shadowOpacity: 0.25,
-                          shadowRadius: 3.84,
-                          elevation: 5,
-                        }}
-                        // Estilo de cada item da lista
-                        listItemContainerStyle={{
-                          backgroundColor: "white",
-                          borderWidth: 0,
-                          height: 45,
-                        }}
-                        // Estilo do texto de cada item
-                        listItemLabelStyle={{
-                          color: "#333",
-                          fontSize: 14,
-                        }}
-                        selectedItemLabelStyle={{
-                          color: "#6200ee",
-                          fontWeight: "bold",
-                        }}
-                        // Estilo do placeholder
-                        placeholderStyle={{
-                          color: "grey",
-                        }}
-                        // Estilo da seta
-                        arrowIconStyle={{
-                          tintColor: "#6200ee",
-                        }}
-                      />
-                      <Text>Nível:</Text>
-                      <DropDownPicker
-                        zIndex={3000}
-                        style={styles.picker}
-                        items={nivelItens}
-                        value={nivel}
-                        open={openNivel}
-                        setItems={setNiveis}
-                        setOpen={setOpenNivel}
-                        setValue={setNivel}
-                        onOpen={() => {
-                          setOpenTipo(false);
-                          setOpenRank(false);
-                        }}
-                        onChangeValue={(value) => {
-                          updateWindow({ ...window, nivel: value });
-                        }}
-                        placeholder="Selecione um nível..."
-                        listMode="SCROLLVIEW"
-                        dropDownContainerStyle={{
-                          zIndex: 3000,
-                          backgroundColor: "white",
-                          borderWidth: 0,
-                          borderRadius: 20,
-                          width: 210,
-                          shadowColor: "#000",
-                          shadowOffset: {
-                            width: 0,
-                            height: 2,
-                          },
-                          shadowOpacity: 0.25,
-                          shadowRadius: 3.84,
-                          elevation: 5,
-                        }}
-                        // Estilo de cada item da lista
-                        listItemContainerStyle={{
-                          backgroundColor: "white",
-                          borderWidth: 0,
-                          height: 45,
-                        }}
-                        // Estilo do texto de cada item
-                        listItemLabelStyle={{
-                          color: "#333",
-                          fontSize: 14,
-                        }}
-                        selectedItemLabelStyle={{
-                          color: "#6200ee",
-                          fontWeight: "bold",
-                        }}
-                        // Estilo do placeholder
-                        placeholderStyle={{
-                          color: "grey",
-                        }}
-                        // Estilo da seta
-                        arrowIconStyle={{
-                          tintColor: "#6200ee",
-                        }}
-                      />
-                      
-                    </View>
+                      onSelectItem={(item) => {
+                        updateWindow({
+                          ...window,
+                          categoria: item.value,
+                        });
+                      }}
+                      placeholder="Selecione uma categoria..."
+                      listMode="SCROLLVIEW"
+                      dropDownContainerStyle={{
+                        zIndex: 5000,
+                        backgroundColor: "white",
+                        borderWidth: 0,
+                        borderRadius: 20,
+                        width: 210,
+                        shadowColor: "#000",
+                        shadowOffset: {
+                          width: 0,
+                          height: 2,
+                        },
+                        shadowOpacity: 0.25,
+                        shadowRadius: 3.84,
+                        elevation: 5,
+                      }}
+                      // Estilo de cada item da lista
+                      listItemContainerStyle={{
+                        backgroundColor: "white",
+                        borderWidth: 0,
+                        height: 45,
+                      }}
+                      // Estilo do texto de cada item
+                      listItemLabelStyle={{
+                        color: "#333",
+                        fontSize: 14,
+                      }}
+                      selectedItemLabelStyle={{
+                        color: "#6200ee",
+                        fontWeight: "bold",
+                      }}
+                      // Estilo do placeholder
+                      placeholderStyle={{
+                        color: "grey",
+                      }}
+                      // Estilo da seta
+                      arrowIconStyle={{
+                        tintColor: "#6200ee",
+                      }}
+                    />
+                    {usuario.adm && (
+                      <View>
+                        <Text>Tipo:</Text>
+                        <DropDownPicker
+                          zIndex={5000}
+                          style={styles.picker}
+                          items={tipos}
+                          value={tipo}
+                          open={openTipo}
+                          setItems={setTipos}
+                          setOpen={setOpenTipo}
+                          setValue={setTipo}
+                          onOpen={() => {
+                            setOpenRank(false);
+                            setOpenNivel(false);
+                          }}
+                          onSelectItem={(item) => {
+                            const value = item.value; // `value` é o novo tipo selecionado
+                            // Filtra a lista original de `ranks` com base no tipo
+                            const newRankItems = ranks
+                              .filter((r) => r.tipo === value)
+                              .map((r) => ({ label: r.nome, value: r.id }));
+                            setRankItens(newRankItems);
+                            setRank(null); // Reseta a seleção do rank
+                            updateWindow({
+                              ...window,
+                              tipo: value,
+                              rankId: null,
+                              nivel: null,
+                            });
+                          }}
+                          placeholder="Selecione um tipo..."
+                          listMode="SCROLLVIEW"
+                          dropDownContainerStyle={{
+                            zIndex: 5000,
+                            backgroundColor: "white",
+                            borderWidth: 0,
+                            borderRadius: 20,
+                            width: 210,
+                            shadowColor: "#000",
+                            shadowOffset: {
+                              width: 0,
+                              height: 2,
+                            },
+                            shadowOpacity: 0.25,
+                            shadowRadius: 3.84,
+                            elevation: 5,
+                          }}
+                          // Estilo de cada item da lista
+                          listItemContainerStyle={{
+                            backgroundColor: "white",
+                            borderWidth: 0,
+                            height: 45,
+                          }}
+                          // Estilo do texto de cada item
+                          listItemLabelStyle={{
+                            color: "#333",
+                            fontSize: 14,
+                          }}
+                          selectedItemLabelStyle={{
+                            color: "#6200ee",
+                            fontWeight: "bold",
+                          }}
+                          // Estilo do placeholder
+                          placeholderStyle={{
+                            color: "grey",
+                          }}
+                          // Estilo da seta
+                          arrowIconStyle={{
+                            tintColor: "#6200ee",
+                          }}
+                        />
+                        <Text>Rank:</Text>
+                        <DropDownPicker
+                          zIndex={4000}
+                          style={styles.picker}
+                          items={rankItens}
+                          value={rank}
+                          open={openRank}
+                          setItems={setRankItens}
+                          setOpen={setOpenRank}
+                          setValue={setRank}
+                          onOpen={() => {
+                            setOpenTipo(false);
+                            setOpenNivel(false);
+                          }}
+                          onChangeValue={(value) => {
+                            updateWindow({ ...window, rankId: value });
+                          }}
+                          placeholder="Selecione um rank..."
+                          listMode="SCROLLVIEW"
+                          dropDownContainerStyle={{
+                            zIndex: 4000,
+                            backgroundColor: "white",
+                            borderWidth: 0,
+                            borderRadius: 20,
+                            width: 210,
+                            maxHeight: 140,
+                            shadowColor: "#000",
+                            shadowOffset: {
+                              width: 0,
+                              height: 2,
+                            },
+                            shadowOpacity: 0.25,
+                            shadowRadius: 3.84,
+                            elevation: 5,
+                          }}
+                          // Estilo de cada item da lista
+                          listItemContainerStyle={{
+                            backgroundColor: "white",
+                            borderWidth: 0,
+                            height: 45,
+                          }}
+                          // Estilo do texto de cada item
+                          listItemLabelStyle={{
+                            color: "#333",
+                            fontSize: 14,
+                          }}
+                          selectedItemLabelStyle={{
+                            color: "#6200ee",
+                            fontWeight: "bold",
+                          }}
+                          // Estilo do placeholder
+                          placeholderStyle={{
+                            color: "grey",
+                          }}
+                          // Estilo da seta
+                          arrowIconStyle={{
+                            tintColor: "#6200ee",
+                          }}
+                        />
+                        <Text>Nível:</Text>
+                        <Pressable
+                          style={[
+                            styles.erroLacunaNivel,
+                            {
+                              backgroundColor:
+                                window.nivel === 0
+                                  ? "#9CEC86"
+                                  : window.nivel === 1
+                                  ? "#ece286ff"
+                                  : "#FF9999",
+                            },
+                          ]}
+                          onPress={() => {
+                            updateWindow({
+                              ...window,
+                              nivel: (window.nivel + 1) % 3,
+                            });
+                          }}
+                        >
+                          <Text>
+                            {"+".repeat((window.nivel || 0) + 1)}
+                          </Text>
+                        </Pressable>
+                      </View>
+                    )}
                   </View>
-                )}
-                {abertoConfig && <View style={{ height: 280 }}></View>}
-              </View>
-            )}
+                </View>
+              )}
+              {abertoConfig && <View style={{ height: 280 }}></View>}
+            </View>
             {!abertoConfig && (
               <>
                 <View style={styles.popupView}>
@@ -1773,10 +1913,10 @@ const styles = StyleSheet.create({
     gap: 5,
   },
   distratorText: {
-    color: 'black'
+    color: "black",
   },
   erroLacunaNivel: {
-    display: "flex",                          
+    display: "flex",
     flexDirection: "row",
     padding: 5,
     outlineColor: "grey",
@@ -1793,5 +1933,5 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     gap: 5,
-  }
+  },
 });

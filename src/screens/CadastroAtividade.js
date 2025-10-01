@@ -184,6 +184,7 @@ export default function CadastroAtividade({ navigation }) {
       salvar: false,
       rankId: null,
       nivel: null,
+      categoria: "",
       tipo: "",
     };
 
@@ -218,47 +219,72 @@ export default function CadastroAtividade({ navigation }) {
   }
 
   async function salvar() {
-    const windowsWrong = windows.map((window) => {
-      if (
-        window.type === "multiplaEscolha" &&
-        window.salvar &&
-        (window.nome.trim().length === 0 ||
-          window.pergunta.trim().length === 0 ||
-          window.opcao1.trim().length === 0 ||
-          window.opcao2.trim().length === 0 ||
-          window.opcao3.trim().length === 0 ||
-          window.opcao4.trim().length === 0 ||
-          window.opcaoCorreta.length === 0 ||
-          window.gabarito.trim().length === 0 ||
-          window.descricao.trim().length === 0 || ((window.tipo.trim().length === 0 || window.rankId === null || window.nivel === null) && usuario.adm))
-      ) {
-        return window;
-      }
-    }).filter((x)=>x!==undefined);
+    const windowsWrong = windows
+      .map((window) => {
+        if (
+          (window.type === "multiplaEscolha" &&
+            window.salvar &&
+            (window.nome.trim().length === 0 ||
+              window.pergunta.trim().length === 0 ||
+              window.opcao1.trim().length === 0 ||
+              window.opcao2.trim().length === 0 ||
+              window.opcao3.trim().length === 0 ||
+              window.opcao4.trim().length === 0 ||
+              window.opcaoCorreta.length === 0 ||
+              window.gabarito.trim().length === 0 ||
+              window.descricao.trim().length === 0 ||
+              window.categoria.trim().length === 0 ||
+              ((window.tipo.trim().length === 0 ||
+                window.rankId === null ||
+                window.nivel === null) &&
+                usuario.adm))) ||
+          (window.type === "codigo" &&
+            window.salvar &&
+            (window.nome.trim().length === 0 ||
+              window.descricao.trim().length === 0 ||
+              window.script.trim().length === 0 ||
+              window.errosLacuna.some(
+                (x) => x.type === "error" && x.distratores.length === 0
+              ) ||
+              !(
+                window.errosLacuna.filter((x) => x.type === "error").length >= 2 ||
+                window.errosLacuna.filter((x) => x.type === "gap").length >= 2
+              ) ||
+              (window.rankId === null && usuario.adm)))
+        ) {
+          return window;
+        }
+      })
+      .filter((x) => x !== undefined);
     if (windowsWrong.length > 0) {
       setSnackbarVisible(true);
       setMensagem(
         "Preencha todos os campos das questões: " +
-          windowsWrong.map((x)=>x.nome).join(", ") +
+          windowsWrong.map((x) => x.nome).join(", ") +
           "."
       );
       return;
     }
     instance
-        .post("/atividades/cadastro", {questoes: windows}, {
+      .post(
+        "/atividades/cadastro",
+        { questoes: windows },
+        {
           headers: {
             Authorization: `Bearer ${usuario.token}`,
           },
-        })
-        .then(async (response) => {
-          setSnackbarVisible(true);
-          setMensagem("Questões salvas com sucesso!");
-        })
-        .catch((error) => {
-          console.log(error);
-          setSnackbarVisible(true);
-          setMensagem("Erro ao salvar questões. Tente novamente.");
-        });
+        }
+      )
+      .then(async (response) => {
+        setSnackbarVisible(true);
+        setMensagem("Questões salvas com sucesso!");
+        
+      })
+      .catch((error) => {
+        console.log(error);
+        setSnackbarVisible(true);
+        setMensagem("Erro ao salvar questões. Tente novamente.");
+      });
   }
 
   const imagemKey = `${usuario.cor.toLowerCase()}_${usuario.acessorio.toLowerCase()}`;
