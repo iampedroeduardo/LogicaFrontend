@@ -521,604 +521,512 @@ export default function Window({
         !closed &&
         (window.type === "codigo" ? (
           <View style={styles.questionPopups}>
-            <View style={styles.popupView}>
-              <Pressable
-                style={styles.popupIcon}
-                onPress={() => {
-                  setAbertoDesc(!abertoDesc);
-                  setAbertoLacuna(false);
-                  setAbertoErro(false);
-                }}
-              >
-                <Icon source="pen" size={20} color="black" />
-              </Pressable>
-              {abertoDesc && (
-                <View style={styles.viewDesc}>
-                  <Text>Descrição</Text>
-                  <TextInput
-                    multiline={true}
-                    numberOfLines={10}
-                    placeholder="Escreva aqui a descrição do algoritmo..."
-                    style={{
-                      height: 137.6,
-                      width: 230,
-                      textAlignVertical: "top",
-                      backgroundColor: "#EEEEEE",
-                      padding: 10,
-                      borderRadius: 15,
-                      outlineStyle: "none",
-                    }}
-                    onChange={(text) => {
-                      updateWindow({ ...window, descricao: text });
-                    }}
-                  />
-                </View>
-              )}
-              {abertoDesc && <View style={{ height: 160 }}></View>}
-            </View>
-            <View style={styles.popupView}>
-              <Pressable
-                style={styles.popupIcon}
-                onPress={async () => {
-                  if (
-                    (switchQuestionTemplate === "error" &&
-                      startSelection !== endSelection) ||
-                    abertoErro
-                  ) {
-                    if (abertoErro) {
-                      setAbertoErro(false);
-                      setOpenedError(null);
-                    } else {
-                      const newId = Date.now();
-                      await updateWindow({
-                        ...window,
-                        errosLacuna: [
-                          ...window.errosLacuna,
-                          {
-                            type: "error",
-                            start: startSelection,
-                            end: endSelection,
-                            id: newId,
-                            distratores: [],
-                          },
-                        ],
-                      });
-                      setOpenedError(newId);
-                      setAbertoErro(!abertoErro);
-                      setAbertoLacuna(false);
-                      setAbertoDesc(false);
-                      setStartSelection(0);
-                      setEndSelection(0);
-                    }
-                  }
-                }}
-              >
-                <Icon source="alert" size={20} color="black" />
-                {endSelection !== startSelection &&
-                  switchQuestionTemplate === "error" &&
-                  !abertoErro && <Text>Novo Erro</Text>}
-              </Pressable>
-              {abertoErro && (
-                <View style={styles.viewDesc}>
-                  <Text>Encontre o Erro</Text>
-                  <ScrollView
-                    style={{
-                      height: 137.6,
-                      width: 230,
-                      backgroundColor: "#EEEEEE",
-                      padding: 10,
-                      borderRadius: 15,
-                    }}
-                    showsVerticalScrollIndicator={false}
-                  >
+            {usuario.adm && (
+              <View style={styles.popupView}>
+                <Pressable
+                  style={styles.popupIcon}
+                  onPress={() => {
+                    setAbertoConfig(!abertoConfig);
+                  }}
+                >
+                  <Icon source="cog" size={20} color="black" />
+                </Pressable>
+                {abertoConfig && (
+                  <View style={styles.viewDesc}>
+                    <Text>Configurações</Text>
                     <View
                       style={{
-                        flexDirection: "row",
-                        gap: 5,
-                        alignItems: "center",
+                        width: 230,
+                        backgroundColor: "#EEEEEE",
+                        padding: 10,
+                        borderRadius: 15,
                       }}
                     >
-                      <Text style={styles.erroLacunaText}>Erro:</Text>
-                      <Text style={styles.erroLacunaInput}>
-                        {window.script.substring(
-                          window.errosLacuna.find((x) => x.id === openedError)
-                            .start,
-                          window.errosLacuna.find((x) => x.id === openedError)
-                            .end
-                        )}
-                      </Text>
-                      <Icon
-                        source="arrow-right-thin"
-                        size={20}
-                        color="#6446DB"
+                      <Text>Rank:</Text>
+                      <DropDownPicker
+                        zIndex={4000}
+                        style={styles.picker}
+                        items={rankItens}
+                        value={rank}
+                        open={openRank}
+                        setItems={setRankItens}
+                        setOpen={setOpenRank}
+                        setValue={setRank}
+                        onOpen={() => {
+                          setOpenTipo(false);
+                          setOpenNivel(false);
+                        }}
+                        onChangeValue={(value) => {
+                          updateWindow({ ...window, rankId: value });
+                        }}
+                        placeholder="Selecione um rank..."
+                        listMode="SCROLLVIEW"
+                        dropDownContainerStyle={{
+                          zIndex: 4000,
+                          backgroundColor: "white",
+                          borderWidth: 0,
+                          borderRadius: 20,
+                          width: 210,
+                          maxHeight: 140,
+                          shadowColor: "#000",
+                          shadowOffset: {
+                            width: 0,
+                            height: 2,
+                          },
+                          shadowOpacity: 0.25,
+                          shadowRadius: 3.84,
+                          elevation: 5,
+                        }}
+                        // Estilo de cada item da lista
+                        listItemContainerStyle={{
+                          backgroundColor: "white",
+                          borderWidth: 0,
+                          height: 45,
+                        }}
+                        // Estilo do texto de cada item
+                        listItemLabelStyle={{
+                          color: "#333",
+                          fontSize: 14,
+                        }}
+                        selectedItemLabelStyle={{
+                          color: "#6200ee",
+                          fontWeight: "bold",
+                        }}
+                        // Estilo do placeholder
+                        placeholderStyle={{
+                          color: "grey",
+                        }}
+                        // Estilo da seta
+                        arrowIconStyle={{
+                          tintColor: "#6200ee",
+                        }}
                       />
-                      <TextInput
-                        style={styles.erroLacunaInput}
-                        placeholder="Digite"
-                        onChangeText={(text) => {
-                          setInputText(text);
-                        }}
-                        value={inputText}
-                        onKeyPress={(event) => {
-                          if (event.nativeEvent.key === "Enter") {
-                            event.preventDefault();
-                            updateWindow({
-                              ...window,
-                              errosLacuna: window.errosLacuna.map((item) => {
-                                if (item.id === openedError) {
-                                  return {
-                                    ...item,
-                                    distratores: [
-                                      ...item.distratores,
-                                      { text: inputText, id: Date.now() },
-                                    ],
-                                  };
-                                }
-                                return item;
-                              }),
-                            });
-                            setInputText("");
-                          }
-                        }}
-                      ></TextInput>
+                      
                     </View>
-                    <View
-                      style={{
-                        flexDirection: "row",
-                        marginTop: 10,
-                        flexWrap: "wrap",
-                        gap: 5,
-                      }}
-                    >
-                      <Text style={styles.erroLacunaText}>
-                        Opções Alternativas:
-                      </Text>
-                      {window.errosLacuna
-                        .find((x) => x.id === openedError)
-                        .distratores.map((x) => {
-                          console.log(x);
-                          return (
-                            <View key={x.id} style={styles.erroLacunaInput}>
-                              <Text style={styles.distratorText}>
-                                {x.text}
-                              </Text>
-                              <Pressable
-                                onPress={() => {
-                                  updateWindow({
-                                    ...window,
-                                    errosLacuna: window.errosLacuna.map(
-                                      (item) => {
-                                        if (item.id === openedError) {
-                                          return {
-                                            ...item,
-                                            distratores:
-                                              item.distratores.filter(
-                                                (y) => y.id !== x.id
-                                              ),
-                                          };
-                                        }
-                                        return item;
-                                      }
-                                    ),
-                                  });
-                                }}
-                              >
-                                <Icon source="close" size={10} color="black" />
-                              </Pressable>
-                            </View>
-                          );
-                        })}
-                    </View>
-                  </ScrollView>
-                </View>
-              )}
-              {abertoErro && <View style={{ height: 160 }}></View>}
-            </View>
-            <View style={styles.popupView}>
-              <Pressable
-                style={styles.popupIcon}
-                onPress={() => {
-                  if (
-                    (switchQuestionTemplate === "gap" &&
-                      startSelection !== endSelection) ||
-                    abertoLacuna
-                  ) {
-                    if (abertoLacuna) {
+                  </View>
+                )}
+                {abertoConfig && <View style={{ height: 280 }}></View>}
+              </View>
+            )}
+            {!abertoConfig && (
+              <>
+                <View style={styles.popupView}>
+                  <Pressable
+                    style={styles.popupIcon}
+                    onPress={() => {
+                      setAbertoDesc(!abertoDesc);
                       setAbertoLacuna(false);
-                      setOpenedGap(null);
-                    } else {
-                      const newId = Date.now();
-                      updateWindow({
-                        ...window,
-                        errosLacuna: [
-                          ...window.errosLacuna,
-                          {
-                            type: "gap",
-                            start: startSelection,
-                            end: endSelection,
-                            distratores: [],
-                            id: newId,
-                          },
-                        ],
-                      });
-                      setOpenedGap(newId);
-                      setAbertoLacuna(true);
                       setAbertoErro(false);
-                      setAbertoDesc(false);
-                      setStartSelection(0);
-                      setEndSelection(0);
-                    }
-                  }
-                }}
-              >
-                <Icon source="format-quote-close" size={20} color="black" />
-                {endSelection !== startSelection &&
-                  switchQuestionTemplate === "gap" &&
-                  !abertoLacuna && <Text>Nova Lacuna</Text>}
-              </Pressable>
-              {abertoLacuna && (
-                <View style={styles.viewDesc}>
-                  <Text>Complete o código</Text>
-                  <ScrollView
-                    style={{
-                      height: 137.6,
-                      width: 230,
-                      backgroundColor: "#EEEEEE",
-                      padding: 10,
-                      borderRadius: 15,
-                      gap: 10,
                     }}
-                    showsVerticalScrollIndicator={false}
-                    keyboardShouldPersistTaps="handled"
                   >
-                    <View style={{ flexDirection: "row", gap: 5 }}>
-                      <Text style={styles.erroLacunaText}>Lacuna:</Text>
-                      <Text style={styles.erroLacunaInput}>
-                        {window.script.substring(
-                          window.errosLacuna.find((x) => x.id === openedGap)
-                            .start,
-                          window.errosLacuna.find((x) => x.id === openedGap).end
-                        )}
-                      </Text>
-                    </View>
-                    <View
-                      style={{
-                        flexDirection: "row",
-                        marginTop: 10,
-                        flexWrap: "wrap",
-                        gap: 5,
-                      }}
-                    >
-                      <Text style={styles.erroLacunaText}>Distratores:</Text>
+                    <Icon source="pen" size={20} color="black" />
+                  </Pressable>
+                  {abertoDesc && (
+                    <View style={styles.viewDesc}>
+                      <Text>Descrição</Text>
                       <TextInput
-                        style={styles.erroLacunaInput}
-                        placeholder="Digite"
-                        onChangeText={(text) => {
-                          setInputText(text);
+                        multiline={true}
+                        numberOfLines={10}
+                        placeholder="Escreva aqui a descrição do algoritmo..."
+                        style={{
+                          height: 137.6,
+                          width: 230,
+                          textAlignVertical: "top",
+                          backgroundColor: "#EEEEEE",
+                          padding: 10,
+                          borderRadius: 15,
+                          outlineStyle: "none",
                         }}
-                        value={inputText}
-                        onKeyPress={(event) => {
-                          if (event.nativeEvent.key === "Enter") {
-                            event.preventDefault();
-                            updateWindow({
-                              ...window,
-                              errosLacuna: window.errosLacuna.map((item) => {
-                                if (item.id === openedGap) {
-                                  return {
-                                    ...item,
-                                    distratores: [
-                                      ...item.distratores,
-                                      { text: inputText, id: Date.now() },
-                                    ],
-                                  };
-                                }
-                                return item;
-                              }),
-                            });
-                            setInputText("");
-                          }
+                        onChange={(text) => {
+                          updateWindow({ ...window, descricao: text });
                         }}
-                      ></TextInput>
-                      {window.errosLacuna
-                        .find((x) => x.id === openedGap)
-                        .distratores.map((x) => {
-                          console.log(x);
-                          return (
-                            <View key={x.id} style={styles.erroLacunaInput}>
-                              <Text style={styles.distratorText}>
-                                {x.text}
-                              </Text>
-                              <Pressable
-                                style={styles.erroLacunaX}
-                                onPress={() => {
-                                  updateWindow({
-                                    ...window,
-                                    errosLacuna: window.errosLacuna.map(
-                                      (item) => {
-                                        if (item.id === openedGap) {
-                                          return {
-                                            ...item,
-                                            distratores:
-                                              item.distratores.filter(
-                                                (y) => y.id !== x.id
-                                              ),
-                                          };
-                                        }
-                                        return item;
-                                      }
-                                    ),
-                                  });
-                                }}
-                              >
-                                <Icon source="close" size={10} color="black" />
-                              </Pressable>
-                            </View>
-                          );
-                        })}
+                      />
                     </View>
-                  </ScrollView>
+                  )}
+                  {abertoDesc && <View style={{ height: 160 }}></View>}
                 </View>
-              )}
-            </View>
+                <View style={styles.popupView}>
+                  <Pressable
+                    style={styles.popupIcon}
+                    onPress={async () => {
+                      if (
+                        (switchQuestionTemplate === "error" &&
+                          startSelection !== endSelection) ||
+                        abertoErro
+                      ) {
+                        if (abertoErro) {
+                          setAbertoErro(false);
+                          setOpenedError(null);
+                        } else {
+                          const newId = Date.now();
+                          await updateWindow({
+                            ...window,
+                            errosLacuna: [
+                              ...window.errosLacuna,
+                              {
+                                type: "error",
+                                start: startSelection,
+                                end: endSelection,
+                                id: newId,
+                                distratores: [],
+                                nivel: 0, // Inicializa o nível do erro
+                              },
+                            ],
+                          });
+                          setOpenedError(newId);
+                          setAbertoErro(!abertoErro);
+                          setAbertoLacuna(false);
+                          setAbertoDesc(false);
+                          setStartSelection(0);
+                          setEndSelection(0);
+                        }
+                      }
+                    }}
+                  >
+                    <Icon source="alert" size={20} color="black" />
+                    {endSelection !== startSelection &&
+                      switchQuestionTemplate === "error" &&
+                      !abertoErro && <Text>Novo Erro</Text>}
+                  </Pressable>
+                  {abertoErro && (
+                    <View style={styles.viewDesc}>
+                      <Text>Encontre o Erro</Text>
+                      <ScrollView
+                        style={{
+                          height: 137.6,
+                          width: 230,
+                          backgroundColor: "#EEEEEE",
+                          padding: 10,
+                          borderRadius: 15,
+                        }}
+                        showsVerticalScrollIndicator={false}
+                      >
+                        <View
+                          style={{
+                            flexDirection: "row",
+                            gap: 5,
+                            alignItems: "center",
+                          }}
+                        >
+                          <Text style={styles.erroLacunaText}>Erro:</Text>
+                          <Text style={styles.erroLacunaInput}>
+                            {window.script.substring(
+                              window.errosLacuna.find(
+                                (x) => x.id === openedError
+                              ).start,
+                              window.errosLacuna.find(
+                                (x) => x.id === openedError
+                              ).end
+                            )}
+                          </Text>
+                        </View>
+                        {/* aqui vai a dificuldade erro */}
+                        <View style={{
+                          flexDirection: "row",
+                          gap: 5,
+                          alignItems: "center",
+                          marginTop: 5,
+                        }}>
+                          <Text style={styles.erroLacunaText}>Nível: </Text>
+                          <Pressable
+                            style={[
+                              styles.erroLacunaNivel,
+                              {
+                                backgroundColor:
+                                  window.errosLacuna.find(
+                                    (x) => x.id === openedError
+                                  )?.nivel === 0
+                                    ? "#9CEC86"
+                                    : window.errosLacuna.find((x) => x.id === openedError)?.nivel === 1
+                                    ? "#ece286ff"
+                                    : "#FF9999",
+                              },
+                            ]}
+                            onPress={() => {
+                              updateWindow({
+                                ...window,
+                                errosLacuna: window.errosLacuna.map((item) => {
+                                  if (item.id === openedError) {
+                                    const novoNivel = (item.nivel + 1) % 3;
+                                    return { ...item, nivel: novoNivel };
+
+                                  }
+                                  return item;
+                                }),
+                              });
+                            }}
+                          >
+                            <Text>
+                              {"+".repeat(
+                                (window.errosLacuna.find(
+                                  (x) => x.id === openedError
+                                )?.nivel || 0) + 1
+                              )}
+                            </Text>
+                          </Pressable>
+                          </View>
+                        <View
+                          style={{
+                            flexDirection: "row",
+                            marginTop: 10,
+                            flexWrap: "wrap",
+                            gap: 5,
+                          }}
+                        >
+                          <Text style={styles.erroLacunaText}>
+                            Opções Alternativas:
+                          </Text>
+                          <TextInput
+                            style={styles.erroLacunaInput}
+                            placeholder="Digite"
+                            onChangeText={(text) => {
+                              setInputText(text);
+                            }}
+                            value={inputText}
+                            onKeyPress={(event) => {
+                              if (event.nativeEvent.key === "Enter") {
+                                event.preventDefault();
+                                updateWindow({
+                                  ...window,
+                                  errosLacuna: window.errosLacuna.map(
+                                    (item) => {
+                                      if (item.id === openedError) {
+                                        return {
+                                          ...item,
+                                          distratores: [
+                                            ...item.distratores,
+                                            { text: inputText, id: Date.now() },
+                                          ],
+                                        };
+                                      }
+                                      return item;
+                                    }
+                                  ),
+                                });
+                                setInputText("");
+                              }
+                            }}
+                          ></TextInput>
+                          {window.errosLacuna
+                            .find((x) => x.id === openedError)
+                            .distratores.map((x) => {
+                              console.log(x);
+                              return (
+                                <View
+                                  key={x.id}
+                                  style={styles.erroLacunaInput}
+                                >
+                                  <Text style={styles.distratorText}>
+                                    {x.text}
+                                  </Text>
+                                  <Pressable
+                                    onPress={() => {
+                                      updateWindow({
+                                        ...window,
+                                        errosLacuna: window.errosLacuna.map(
+                                          (item) => {
+                                            if (item.id === openedError) {
+                                              return {
+                                                ...item,
+                                                distratores:
+                                                  item.distratores.filter(
+                                                    (y) => y.id !== x.id
+                                                  ),
+                                              };
+                                            }
+                                            return item;
+                                          }
+                                        ),
+                                      });
+                                    }}
+                                  >
+                                    <Icon
+                                      source="close"
+                                      size={10}
+                                      color="black"
+                                    />
+                                  </Pressable>
+                                </View>
+                              );
+                            })}
+                        </View>
+                      </ScrollView>
+                    </View>
+                  )}
+                  {abertoErro && <View style={{ height: 160 }}></View>}
+                </View>
+                <View style={styles.popupView}>
+                  <Pressable
+                    style={styles.popupIcon}
+                    onPress={() => {
+                      if (
+                        (switchQuestionTemplate === "gap" &&
+                          startSelection !== endSelection) ||
+                        abertoLacuna
+                      ) {
+                        if (abertoLacuna) {
+                          setAbertoLacuna(false);
+                          setOpenedGap(null);
+                        } else {
+                          const newId = Date.now();
+                          updateWindow({
+                            ...window,
+                            errosLacuna: [
+                              ...window.errosLacuna,
+                              {
+                                type: "gap",
+                                start: startSelection,
+                                end: endSelection,
+                                distratores: [],
+                                id: newId,
+                              },
+                            ],
+                          });
+                          setOpenedGap(newId);
+                          setAbertoLacuna(true);
+                          setAbertoErro(false);
+                          setAbertoDesc(false);
+                          setStartSelection(0);
+                          setEndSelection(0);
+                        }
+                      }
+                    }}
+                  >
+                    <Icon
+                      source="format-quote-close"
+                      size={20}
+                      color="black"
+                    />
+                    {endSelection !== startSelection &&
+                      switchQuestionTemplate === "gap" &&
+                      !abertoLacuna && <Text>Nova Lacuna</Text>}
+                  </Pressable>
+                  {abertoLacuna && (
+                    <View style={styles.viewDesc}>
+                      <Text>Complete o código</Text>
+                      <ScrollView
+                        style={{
+                          height: 137.6,
+                          width: 230,
+                          backgroundColor: "#EEEEEE",
+                          padding: 10,
+                          borderRadius: 15,
+                          gap: 10,
+                        }}
+                        showsVerticalScrollIndicator={false}
+                        keyboardShouldPersistTaps="handled"
+                      >
+                        <View style={{ flexDirection: "row", gap: 5 }}>
+                          <Text style={styles.erroLacunaText}>Lacuna:</Text>
+                          <Text style={styles.erroLacunaInput}>
+                            {window.script.substring(
+                              window.errosLacuna.find(
+                                (x) => x.id === openedGap
+                              ).start,
+                              window.errosLacuna.find(
+                                (x) => x.id === openedGap
+                              ).end
+                            )}
+                          </Text>
+                        </View>
+                        <View
+                          style={{
+                            flexDirection: "row",
+                            marginTop: 10,
+                            flexWrap: "wrap",
+                            gap: 5,
+                          }}
+                        >
+                          <Text style={styles.erroLacunaText}>
+                            Distratores:
+                          </Text>
+                          <TextInput
+                            style={styles.erroLacunaInput}
+                            placeholder="Digite"
+                            onChangeText={(text) => {
+                              setInputText(text);
+                            }}
+                            value={inputText}
+                            onKeyPress={(event) => {
+                              if (event.nativeEvent.key === "Enter") {
+                                event.preventDefault();
+                                updateWindow({
+                                  ...window,
+                                  errosLacuna: window.errosLacuna.map(
+                                    (item) => {
+                                      if (item.id === openedGap) {
+                                        return {
+                                          ...item,
+                                          distratores: [
+                                            ...item.distratores,
+                                            {
+                                              text: inputText,
+                                              id: Date.now(),
+                                            },
+                                          ],
+                                        };
+                                      }
+                                      return item;
+                                    }
+                                  ),
+                                });
+                                setInputText("");
+                              }
+                            }}
+                          ></TextInput>
+                          {window.errosLacuna
+                            .find((x) => x.id === openedGap)
+                            .distratores.map((x) => {
+                              console.log(x);
+                              return (
+                                <View
+                                  key={x.id}
+                                  style={styles.erroLacunaInput}
+                                >
+                                  <Text style={styles.distratorText}>
+                                    {x.text}
+                                  </Text>
+                                  <Pressable
+                                    style={styles.erroLacunaX}
+                                    onPress={() => {
+                                      updateWindow({
+                                        ...window,
+                                        errosLacuna: window.errosLacuna.map(
+                                          (item) => {
+                                            if (item.id === openedGap) {
+                                              return {
+                                                ...item,
+                                                distratores:
+                                                  item.distratores.filter(
+                                                    (y) => y.id !== x.id
+                                                  ),
+                                              };
+                                            }
+                                            return item;
+                                          }
+                                        ),
+                                      });
+                                    }}
+                                  >
+                                    <Icon
+                                      source="close"
+                                      size={10}
+                                      color="black"
+                                    />
+                                  </Pressable>
+                                </View>
+                              );
+                            })}
+                        </View>
+                      </ScrollView>
+                    </View>
+                  )}
+                </View>
+              </>
+            )}
           </View>
         ) : (
           <View style={styles.questionPopups}>
-            <View style={styles.popupView}>
-              <Pressable
-                style={styles.popupIcon}
-                onPress={() => setAbertoA(!abertoA)}
-              >
-                <Icon source="alpha-a" size={20} color="black" />
-              </Pressable>
-              {abertoA && (
-                <View
-                  style={{
-                    ...styles.viewOpcoes,
-                    backgroundColor:
-                      window.opcaoCorreta === ""
-                        ? "white"
-                        : window.opcaoCorreta === "a"
-                        ? "#9CEC86"
-                        : "#FF9999",
-                  }}
-                >
-                  <View>
-                    <TextInput
-                      placeholder="Escreva aqui a alternativa A..."
-                      onChangeText={(text) =>
-                        updateWindow({ ...window, opcao1: text })
-                      }
-                      style={{
-                        height: 40,
-                        width: 230,
-                        backgroundColor:
-                          window.opcaoCorreta === ""
-                            ? "white"
-                            : window.opcaoCorreta === "a"
-                            ? "#9CEC86"
-                            : "#FF9999",
-                        padding: 10,
-                        borderRadius: 15,
-                        outlineStyle: "none",
-                      }}
-                    />
-                  </View>
-                  {window.opcaoCorreta.length === 0 ? (
-                    <Pressable
-                      style={styles.opcaoCorreta}
-                      onPress={() =>
-                        updateWindow({ ...window, opcaoCorreta: "a" })
-                      }
-                    >
-                      <Icon source="check" size={20} color="black" />
-                    </Pressable>
-                  ) : window.opcaoCorreta === "a" ? (
-                    <Pressable
-                      style={styles.opcaoCorreta}
-                      onPress={() =>
-                        updateWindow({ ...window, opcaoCorreta: "" })
-                      }
-                    >
-                      <Icon source="close" size={20} color="black" />
-                    </Pressable>
-                  ) : (
-                    <></>
-                  )}
-                </View>
-              )}
-            </View>
-            <View style={styles.popupView}>
-              <Pressable
-                style={styles.popupIcon}
-                onPress={() => setAbertoB(!abertoB)}
-              >
-                <Icon source="alpha-b" size={20} color="black" />
-              </Pressable>
-              {abertoB && (
-                <View
-                  style={{
-                    ...styles.viewOpcoes,
-                    backgroundColor:
-                      window.opcaoCorreta === ""
-                        ? "white"
-                        : window.opcaoCorreta === "b"
-                        ? "#9CEC86"
-                        : "#FF9999",
-                  }}
-                >
-                  <View>
-                    <TextInput
-                      placeholder="Escreva aqui a alternativa B..."
-                      onChangeText={(text) =>
-                        updateWindow({ ...window, opcao2: text })
-                      }
-                      style={{
-                        height: 40,
-                        width: 230,
-                        backgroundColor:
-                          window.opcaoCorreta === ""
-                            ? "white"
-                            : window.opcaoCorreta === "b"
-                            ? "#9CEC86"
-                            : "#FF9999",
-                        padding: 10,
-                        borderRadius: 15,
-                        outlineStyle: "none",
-                      }}
-                    />
-                  </View>
-                  {window.opcaoCorreta.length === 0 ? (
-                    <Pressable
-                      style={styles.opcaoCorreta}
-                      onPress={() =>
-                        updateWindow({ ...window, opcaoCorreta: "b" })
-                      }
-                    >
-                      <Icon source="check" size={20} color="black" />
-                    </Pressable>
-                  ) : window.opcaoCorreta === "b" ? (
-                    <Pressable
-                      style={styles.opcaoCorreta}
-                      onPress={() =>
-                        updateWindow({ ...window, opcaoCorreta: "" })
-                      }
-                    >
-                      <Icon source="close" size={20} color="black" />
-                    </Pressable>
-                  ) : (
-                    <></>
-                  )}
-                </View>
-              )}
-            </View>
-            <View style={styles.popupView}>
-              <Pressable
-                style={styles.popupIcon}
-                onPress={() => setAbertoC(!abertoC)}
-              >
-                <Icon source="alpha-c" size={20} color="black" />
-              </Pressable>
-              {abertoC && (
-                <View
-                  style={{
-                    ...styles.viewOpcoes,
-                    backgroundColor:
-                      window.opcaoCorreta === ""
-                        ? "white"
-                        : window.opcaoCorreta === "c"
-                        ? "#9CEC86"
-                        : "#FF9999",
-                  }}
-                >
-                  <View>
-                    <TextInput
-                      placeholder="Escreva aqui a alternativa C..."
-                      onChangeText={(text) =>
-                        updateWindow({ ...window, opcao3: text })
-                      }
-                      style={{
-                        height: 40,
-                        width: 230,
-                        backgroundColor:
-                          window.opcaoCorreta === ""
-                            ? "white"
-                            : window.opcaoCorreta === "c"
-                            ? "#9CEC86"
-                            : "#FF9999",
-                        padding: 10,
-                        borderRadius: 15,
-                        outlineStyle: "none",
-                      }}
-                    />
-                  </View>
-                  {window.opcaoCorreta.length === 0 ? (
-                    <Pressable
-                      style={styles.opcaoCorreta}
-                      onPress={() =>
-                        updateWindow({ ...window, opcaoCorreta: "c" })
-                      }
-                    >
-                      <Icon source="check" size={20} color="black" />
-                    </Pressable>
-                  ) : window.opcaoCorreta === "c" ? (
-                    <Pressable
-                      style={styles.opcaoCorreta}
-                      onPress={() =>
-                        updateWindow({ ...window, opcaoCorreta: "" })
-                      }
-                    >
-                      <Icon source="close" size={20} color="black" />
-                    </Pressable>
-                  ) : (
-                    <></>
-                  )}
-                </View>
-              )}
-            </View>
-            <View style={styles.popupView}>
-              <Pressable
-                style={styles.popupIcon}
-                onPress={() => setAbertoD(!abertoD)}
-              >
-                <Icon source="alpha-d" size={20} color="black" />
-              </Pressable>
-              {abertoD && (
-                <View
-                  style={{
-                    ...styles.viewOpcoes,
-                    backgroundColor:
-                      window.opcaoCorreta === ""
-                        ? "white"
-                        : window.opcaoCorreta === "d"
-                        ? "#9CEC86"
-                        : "#FF9999",
-                  }}
-                >
-                  <View>
-                    <TextInput
-                      placeholder="Escreva aqui a alternativa D..."
-                      onChangeText={(text) =>
-                        updateWindow({ ...window, opcao4: text })
-                      }
-                      style={{
-                        height: 40,
-                        width: 230,
-                        backgroundColor:
-                          window.opcaoCorreta === ""
-                            ? "white"
-                            : window.opcaoCorreta === "d"
-                            ? "#9CEC86"
-                            : "#FF9999",
-                        padding: 10,
-                        borderRadius: 15,
-                        outlineStyle: "none",
-                      }}
-                    />
-                  </View>
-                  {window.opcaoCorreta.length === 0 ? (
-                    <Pressable
-                      style={styles.opcaoCorreta}
-                      onPress={() =>
-                        updateWindow({ ...window, opcaoCorreta: "d" })
-                      }
-                    >
-                      <Icon source="check" size={20} color="black" />
-                    </Pressable>
-                  ) : window.opcaoCorreta === "d" ? (
-                    <Pressable
-                      style={styles.opcaoCorreta}
-                      onPress={() =>
-                        updateWindow({ ...window, opcaoCorreta: "" })
-                      }
-                    >
-                      <Icon source="close" size={20} color="black" />
-                    </Pressable>
-                  ) : (
-                    <></>
-                  )}
-                </View>
-              )}
-            </View>
             {usuario.adm && (
               <View style={styles.popupView}>
                 <Pressable
@@ -1327,11 +1235,272 @@ export default function Window({
                           tintColor: "#6200ee",
                         }}
                       />
+                      
                     </View>
                   </View>
                 )}
-                {abertoErro && <View style={{ height: 160 }}></View>}
+                {abertoConfig && <View style={{ height: 280 }}></View>}
               </View>
+            )}
+            {!abertoConfig && (
+              <>
+                <View style={styles.popupView}>
+                  <Pressable
+                    style={styles.popupIcon}
+                    onPress={() => setAbertoA(!abertoA)}
+                  >
+                    <Icon source="alpha-a" size={20} color="black" />
+                  </Pressable>
+                  {abertoA && (
+                    <View
+                      style={{
+                        ...styles.viewOpcoes,
+                        backgroundColor:
+                          window.opcaoCorreta === ""
+                            ? "white"
+                            : window.opcaoCorreta === "a"
+                            ? "#9CEC86"
+                            : "#FF9999",
+                      }}
+                    >
+                      <View>
+                        <TextInput
+                          placeholder="Escreva aqui a alternativa A..."
+                          onChangeText={(text) =>
+                            updateWindow({ ...window, opcao1: text })
+                          }
+                          style={{
+                            height: 40,
+                            width: 230,
+                            backgroundColor:
+                              window.opcaoCorreta === ""
+                                ? "white"
+                                : window.opcaoCorreta === "a"
+                                ? "#9CEC86"
+                                : "#FF9999",
+                            padding: 10,
+                            borderRadius: 15,
+                            outlineStyle: "none",
+                          }}
+                        />
+                      </View>
+                      {window.opcaoCorreta.length === 0 ? (
+                        <Pressable
+                          style={styles.opcaoCorreta}
+                          onPress={() =>
+                            updateWindow({ ...window, opcaoCorreta: "a" })
+                          }
+                        >
+                          <Icon source="check" size={20} color="black" />
+                        </Pressable>
+                      ) : window.opcaoCorreta === "a" ? (
+                        <Pressable
+                          style={styles.opcaoCorreta}
+                          onPress={() =>
+                            updateWindow({ ...window, opcaoCorreta: "" })
+                          }
+                        >
+                          <Icon source="close" size={20} color="black" />
+                        </Pressable>
+                      ) : (
+                        <></>
+                      )}
+                    </View>
+                  )}
+                </View>
+                <View style={styles.popupView}>
+                  <Pressable
+                    style={styles.popupIcon}
+                    onPress={() => setAbertoB(!abertoB)}
+                  >
+                    <Icon source="alpha-b" size={20} color="black" />
+                  </Pressable>
+                  {abertoB && (
+                    <View
+                      style={{
+                        ...styles.viewOpcoes,
+                        backgroundColor:
+                          window.opcaoCorreta === ""
+                            ? "white"
+                            : window.opcaoCorreta === "b"
+                            ? "#9CEC86"
+                            : "#FF9999",
+                      }}
+                    >
+                      <View>
+                        <TextInput
+                          placeholder="Escreva aqui a alternativa B..."
+                          onChangeText={(text) =>
+                            updateWindow({ ...window, opcao2: text })
+                          }
+                          style={{
+                            height: 40,
+                            width: 230,
+                            backgroundColor:
+                              window.opcaoCorreta === ""
+                                ? "white"
+                                : window.opcaoCorreta === "b"
+                                ? "#9CEC86"
+                                : "#FF9999",
+                            padding: 10,
+                            borderRadius: 15,
+                            outlineStyle: "none",
+                          }}
+                        />
+                      </View>
+                      {window.opcaoCorreta.length === 0 ? (
+                        <Pressable
+                          style={styles.opcaoCorreta}
+                          onPress={() =>
+                            updateWindow({ ...window, opcaoCorreta: "b" })
+                          }
+                        >
+                          <Icon source="check" size={20} color="black" />
+                        </Pressable>
+                      ) : window.opcaoCorreta === "b" ? (
+                        <Pressable
+                          style={styles.opcaoCorreta}
+                          onPress={() =>
+                            updateWindow({ ...window, opcaoCorreta: "" })
+                          }
+                        >
+                          <Icon source="close" size={20} color="black" />
+                        </Pressable>
+                      ) : (
+                        <></>
+                      )}
+                    </View>
+                  )}
+                </View>
+                <View style={styles.popupView}>
+                  <Pressable
+                    style={styles.popupIcon}
+                    onPress={() => setAbertoC(!abertoC)}
+                  >
+                    <Icon source="alpha-c" size={20} color="black" />
+                  </Pressable>
+                  {abertoC && (
+                    <View
+                      style={{
+                        ...styles.viewOpcoes,
+                        backgroundColor:
+                          window.opcaoCorreta === ""
+                            ? "white"
+                            : window.opcaoCorreta === "c"
+                            ? "#9CEC86"
+                            : "#FF9999",
+                      }}
+                    >
+                      <View>
+                        <TextInput
+                          placeholder="Escreva aqui a alternativa C..."
+                          onChangeText={(text) =>
+                            updateWindow({ ...window, opcao3: text })
+                          }
+                          style={{
+                            height: 40,
+                            width: 230,
+                            backgroundColor:
+                              window.opcaoCorreta === ""
+                                ? "white"
+                                : window.opcaoCorreta === "c"
+                                ? "#9CEC86"
+                                : "#FF9999",
+                            padding: 10,
+                            borderRadius: 15,
+                            outlineStyle: "none",
+                          }}
+                        />
+                      </View>
+                      {window.opcaoCorreta.length === 0 ? (
+                        <Pressable
+                          style={styles.opcaoCorreta}
+                          onPress={() =>
+                            updateWindow({ ...window, opcaoCorreta: "c" })
+                          }
+                        >
+                          <Icon source="check" size={20} color="black" />
+                        </Pressable>
+                      ) : window.opcaoCorreta === "c" ? (
+                        <Pressable
+                          style={styles.opcaoCorreta}
+                          onPress={() =>
+                            updateWindow({ ...window, opcaoCorreta: "" })
+                          }
+                        >
+                          <Icon source="close" size={20} color="black" />
+                        </Pressable>
+                      ) : (
+                        <></>
+                      )}
+                    </View>
+                  )}
+                </View>
+                <View style={styles.popupView}>
+                  <Pressable
+                    style={styles.popupIcon}
+                    onPress={() => setAbertoD(!abertoD)}
+                  >
+                    <Icon source="alpha-d" size={20} color="black" />
+                  </Pressable>
+                  {abertoD && (
+                    <View
+                      style={{
+                        ...styles.viewOpcoes,
+                        backgroundColor:
+                          window.opcaoCorreta === ""
+                            ? "white"
+                            : window.opcaoCorreta === "d"
+                            ? "#9CEC86"
+                            : "#FF9999",
+                      }}
+                    >
+                      <View>
+                        <TextInput
+                          placeholder="Escreva aqui a alternativa D..."
+                          onChangeText={(text) =>
+                            updateWindow({ ...window, opcao4: text })
+                          }
+                          style={{
+                            height: 40,
+                            width: 230,
+                            backgroundColor:
+                              window.opcaoCorreta === ""
+                                ? "white"
+                                : window.opcaoCorreta === "d"
+                                ? "#9CEC86"
+                                : "#FF9999",
+                            padding: 10,
+                            borderRadius: 15,
+                            outlineStyle: "none",
+                          }}
+                        />
+                      </View>
+                      {window.opcaoCorreta.length === 0 ? (
+                        <Pressable
+                          style={styles.opcaoCorreta}
+                          onPress={() =>
+                            updateWindow({ ...window, opcaoCorreta: "d" })
+                          }
+                        >
+                          <Icon source="check" size={20} color="black" />
+                        </Pressable>
+                      ) : window.opcaoCorreta === "d" ? (
+                        <Pressable
+                          style={styles.opcaoCorreta}
+                          onPress={() =>
+                            updateWindow({ ...window, opcaoCorreta: "" })
+                          }
+                        >
+                          <Icon source="close" size={20} color="black" />
+                        </Pressable>
+                      ) : (
+                        <></>
+                      )}
+                    </View>
+                  )}
+                </View>
+              </>
             )}
           </View>
         ))}
@@ -1605,5 +1774,24 @@ const styles = StyleSheet.create({
   },
   distratorText: {
     color: 'black'
+  },
+  erroLacunaNivel: {
+    display: "flex",                          
+    flexDirection: "row",
+    padding: 5,
+    outlineColor: "grey",
+    borderRadius: 15,
+    minWidth: 80,
+    textAlign: "center",
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 5,
   }
 });
