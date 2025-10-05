@@ -97,6 +97,25 @@ export default function CadastroAtividade({ navigation }) {
     fetchRanks();
   }, [usuario]);
 
+  async function getQuestions(status) {
+    try {
+      const { data } = await instance.get(
+        `/atividades/listar/${status}`,
+        {
+          headers: {
+            Authorization: `Bearer ${usuario.token}`,
+          },
+        }
+      );
+      return data;
+    } catch (error) {
+      console.error("Erro ao buscar atividades:", error);
+      setMensagem("Erro ao buscar as atividades. Tente novamente.");
+      setSnackbarVisible(true);
+      return [];
+    }
+  }
+
   async function deslogar() {
     await AsyncStorage.removeItem("usuario");
     closeMenu();
@@ -183,7 +202,7 @@ export default function CadastroAtividade({ navigation }) {
       closed: false,
       salvar: false,
       rankId: null,
-      nivel: null,
+      nivel: 0,
       categoria: "",
       tipo: "",
     };
@@ -247,7 +266,8 @@ export default function CadastroAtividade({ navigation }) {
                 (x) => x.type === "error" && x.distratores.length === 0
               ) ||
               !(
-                window.errosLacuna.filter((x) => x.type === "error").length >= 2 ||
+                window.errosLacuna.filter((x) => x.type === "error").length >=
+                  2 ||
                 window.errosLacuna.filter((x) => x.type === "gap").length >= 2
               ) ||
               (window.rankId === null && usuario.adm)))
@@ -278,9 +298,10 @@ export default function CadastroAtividade({ navigation }) {
       .then(async (response) => {
         setSnackbarVisible(true);
         setMensagem("Questões salvas com sucesso!");
-        
+        setWindows([]);
       })
       .catch((error) => {
+        kjnkjxsnjkbmnbnmjkknjknkj;
         console.log(error);
         setSnackbarVisible(true);
         setMensagem("Erro ao salvar questões. Tente novamente.");
@@ -398,6 +419,7 @@ export default function CadastroAtividade({ navigation }) {
               deleteWindow={() => {
                 setWindows((prev) => prev.filter((w) => w.id !== window.id));
               }}
+              getQuestions={getQuestions}
             />
           ))
         )}

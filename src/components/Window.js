@@ -23,6 +23,7 @@ export default function Window({
   deleteWindow,
   ranks,
   usuario,
+  getQuestions,
 }) {
   // Referências e Estados existentes...
   const pan = useRef(
@@ -41,6 +42,9 @@ export default function Window({
   const [switchQuestionTemplate, setSwitchQuestionTemplate] = useState(
     window.type === "codigo" ? "error" : "question"
   );
+  const [switchStatusQuestions, setSwitchStatusQuestions] =
+    useState("Aprovado");
+  const [questions, setQuestions] = useState([]);
   const [openRank, setOpenRank] = useState(false);
   const [rank, setRank] = useState(false);
   const [rankItens, setRankItens] = useState(
@@ -75,6 +79,12 @@ export default function Window({
 
   const [inputText, setInputText] = useState(""); //inputText
 
+  if (window.type === "minhasQuestoes") {
+    useMemo(async () => {
+      setQuestions(await getQuestions(switchStatusQuestions));
+      console.log(questions);
+    }, [switchStatusQuestions]);
+  }
   // Função para lidar com o clique no widget do editor
   const handleHighlightClick = (item) => {
     if (item.type === "error") {
@@ -276,10 +286,16 @@ export default function Window({
           });
         },
       }),
-    [closed, width, height]
+    [window, closed, width, height]
   );
   return (
-    <Animated.View style={[styles.window, pan.getLayout()]}>
+    <Animated.View
+      style={[
+        styles.window,
+        pan.getLayout(),
+        isDragging && { userSelect: "none" },
+      ]}
+    >
       <View style={styles.questionView}>
         <View style={styles.titleView}>
           {window.type === "minhasQuestoes" ? (
@@ -370,6 +386,7 @@ export default function Window({
                       display:
                         switchQuestionTemplate == "question" ? "flex" : "none",
                     }}
+                    value={window.descricao}
                     onChangeText={(text) =>
                       updateWindow({ ...window, descricao: text })
                     }
@@ -390,6 +407,7 @@ export default function Window({
                       display:
                         switchQuestionTemplate == "template" ? "flex" : "none",
                     }}
+                    value={window.gabarito}
                     onChangeText={(text) =>
                       updateWindow({ ...window, gabarito: text })
                     }
@@ -457,6 +475,7 @@ export default function Window({
                       EditorView.lineWrapping,
                       highlightPlugin, // 3. Adiciona o plugin aqui
                     ]}
+                    value={window.script}
                     onChange={(code, viewUpdate) => {
                       let newErrosLacuna = [...window.errosLacuna];
                       if (viewUpdate.docChanged) {
@@ -498,13 +517,118 @@ export default function Window({
                 </View>
               </View>
             ) : (
-              <Text></Text>
+              <View style={styles.questionsView}>
+                <View style={styles.divSwitchQuestionTemplate}>
+                  <Pressable
+                    style={
+                      switchStatusQuestions == "Aprovado"
+                        ? styles.selectedSwitchQuestionTemplate
+                        : styles.notSelectedSwitchQuestionTemplate
+                    }
+                    onPress={() => setSwitchStatusQuestions("Aprovado")}
+                  >
+                    <Text
+                      style={
+                        switchStatusQuestions == "Aprovado"
+                          ? { fontWeight: 500 }
+                          : { color: "white" }
+                      }
+                    >
+                      Aprovadas
+                    </Text>
+                  </Pressable>
+                  <Pressable
+                    style={
+                      switchStatusQuestions == "Pendente"
+                        ? styles.selectedSwitchQuestionTemplate
+                        : styles.notSelectedSwitchQuestionTemplate
+                    }
+                    onPress={() => setSwitchStatusQuestions("Pendente")}
+                  >
+                    <Text
+                      style={
+                        switchStatusQuestions == "Pendente"
+                          ? { fontWeight: 500 }
+                          : { color: "white" }
+                      }
+                    >
+                      Pendentes
+                    </Text>
+                  </Pressable>
+                  {!usuario.adm && (
+                    <Pressable
+                      style={
+                        switchStatusQuestions == "Negado"
+                          ? styles.selectedSwitchQuestionTemplate
+                          : styles.notSelectedSwitchQuestionTemplate
+                      }
+                      onPress={() => setSwitchStatusQuestions("Negado")}
+                    >
+                      <Text
+                        style={
+                          switchStatusQuestions == "Negado"
+                            ? { fontWeight: 500 }
+                            : { color: "white" }
+                        }
+                      >
+                        Negadas
+                      </Text>
+                    </Pressable>
+                  )}
+                  <Pressable
+                    style={
+                      switchStatusQuestions == "Rascunho"
+                        ? styles.selectedSwitchQuestionTemplate
+                        : styles.notSelectedSwitchQuestionTemplate
+                    }
+                    onPress={() => setSwitchStatusQuestions("Rascunho")}
+                  >
+                    <Text
+                      style={
+                        switchStatusQuestions == "Rascunho"
+                          ? { fontWeight: 500 }
+                          : { color: "white" }
+                      }
+                    >
+                      Rascunhos
+                    </Text>
+                  </Pressable>
+                </View>
+                <View style={styles.questionList}>
+                  {questions.length > 0 ? (
+                    questions.map((x) => {
+                      return (
+                        <View key={x.id} style={styles.questionItem}>
+                          <Text style={styles.questionName}>{x.nome}</Text>
+                          <View style={styles.questionActions}>
+                            <Pressable>
+                              <Icon
+                                source="square-edit-outline"
+                                size={14}
+                                color="white"
+                              />
+                            </Pressable>
+                            <Pressable>
+                              <Icon source="delete" size={14} color="white" />
+                            </Pressable>
+                          </View>
+                        </View>
+                      );
+                    })
+                  ) : (
+                    <View>
+                      <Text>Nenhuma questão encontrada</Text>
+                    </View>
+                  )}
+                </View>
+              </View>
             )}
             {window.type == "multiplaEscolha" && (
               <TextInput
                 multiline={true}
                 numberOfLines={30}
                 placeholder="Escreva a pergunta da questão aqui..."
+                value={window.pergunta}
                 style={{
                   height: 80,
                   width: 280,
@@ -703,9 +827,10 @@ export default function Window({
                           borderRadius: 15,
                           outlineStyle: "none",
                         }}
-                        onChange={(text) => {
+                        onChangeText={(text) => {
                           updateWindow({ ...window, descricao: text });
                         }}
+                        value={window.descricao}
                       />
                     </View>
                   )}
@@ -1248,7 +1373,6 @@ export default function Window({
                               ...window,
                               tipo: value,
                               rankId: null,
-                              nivel: null,
                             });
                           }}
                           placeholder="Selecione um tipo..."
@@ -1371,9 +1495,7 @@ export default function Window({
                             });
                           }}
                         >
-                          <Text>
-                            {"+".repeat((window.nivel || 0) + 1)}
-                          </Text>
+                          <Text>{"+".repeat((window.nivel || 0) + 1)}</Text>
                         </Pressable>
                       </View>
                     )}
@@ -1406,6 +1528,7 @@ export default function Window({
                       <View>
                         <TextInput
                           placeholder="Escreva aqui a alternativa A..."
+                          value={window.opcao1}
                           onChangeText={(text) =>
                             updateWindow({ ...window, opcao1: text })
                           }
@@ -1470,6 +1593,7 @@ export default function Window({
                       <View>
                         <TextInput
                           placeholder="Escreva aqui a alternativa B..."
+                          value={window.opcao2}
                           onChangeText={(text) =>
                             updateWindow({ ...window, opcao2: text })
                           }
@@ -1534,6 +1658,7 @@ export default function Window({
                       <View>
                         <TextInput
                           placeholder="Escreva aqui a alternativa C..."
+                          value={window.opcao3}
                           onChangeText={(text) =>
                             updateWindow({ ...window, opcao3: text })
                           }
@@ -1598,6 +1723,7 @@ export default function Window({
                       <View>
                         <TextInput
                           placeholder="Escreva aqui a alternativa D..."
+                          value={window.opcao4}
                           onChangeText={(text) =>
                             updateWindow({ ...window, opcao4: text })
                           }
@@ -1933,5 +2059,59 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     gap: 5,
+  },
+  questionsView: {
+    backgroundColor: "white",
+    padding: 10,
+    borderRadius: 15,
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
+    width: "100%",
+    flex: 1,
+    display: "flex",
+    flexDirection: "column",
+    justifyContent: "flex-start",
+    gap: 10,
+  },
+  questionList: {
+    display: "flex",
+    display: "column",
+    gap: 10,
+    justifyContent: "center",
+    alignItems: "center",
+    width: "100%",
+  },
+  questionItem: {
+    display: "flex",
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    backgroundColor: "#6446DB",
+    padding: 10,
+    borderRadius: 15,
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
+    width: "100%",
+  },
+  questionName: {
+    color: "white",
+  },
+  questionActions: {
+    display: "flex",
+    flexDirection: "row",
+    gap: 10,
+    alignItems: "center",
   },
 });
