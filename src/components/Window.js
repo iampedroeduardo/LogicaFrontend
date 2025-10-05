@@ -43,7 +43,7 @@ export default function Window({
     window.type === "codigo" ? "error" : "question"
   );
   const [switchStatusQuestions, setSwitchStatusQuestions] =
-    useState("Aprovado");
+    useState("Publicadas");
   const [questions, setQuestions] = useState([]);
   const [openRank, setOpenRank] = useState(false);
   const [rank, setRank] = useState(false);
@@ -79,11 +79,32 @@ export default function Window({
 
   const [inputText, setInputText] = useState(""); //inputText
 
+  //Filtros
+  const [pesquisa, setPesquisa] = useState("");
+  // Esses filtros nao precisa pra adm
+  const [aprovadas, setAprovadas] = useState(true);
+  const [pendentes, setPendentes] = useState(true);
+  const [negadas, setNegadas] = useState(true); 
+  // Esse aqui só pra adm
+  const [minhas, setMinhas] = useState(false);
+
   if (window.type === "minhasQuestoes") {
-    useMemo(async () => {
-      setQuestions(await getQuestions(switchStatusQuestions));
-      console.log(questions);
-    }, [switchStatusQuestions]);
+    // 1. Trocado useMemo por useEffect para executar a busca de dados.
+    useMemo(() => {
+      const fetchMyQuestions = async () => {
+        // 2. Corrigido 'user' para 'usuario' e 'switchQuestionTemplate' para 'switchStatusQuestions'.
+        const query = {
+          pesquisa,
+          aprovadas: switchStatusQuestions === "Publicadas" && aprovadas,
+          pendentes: switchStatusQuestions !== "Rascunhos" && pendentes,
+          negadas: switchStatusQuestions === "Publicadas" && negadas && !usuario.adm,
+          rascunhos: switchStatusQuestions === "Rascunhos",
+          minhas: !usuario.adm || minhas || switchStatusQuestions === "Rascunhos",
+        };
+        setQuestions(await getQuestions(query));
+      }
+      fetchMyQuestions();
+    }, [switchStatusQuestions, pesquisa, aprovadas, pendentes, negadas, minhas]);
   }
   // Função para lidar com o clique no widget do editor
   const handleHighlightClick = (item) => {
@@ -521,76 +542,58 @@ export default function Window({
                 <View style={styles.divSwitchQuestionTemplate}>
                   <Pressable
                     style={
-                      switchStatusQuestions == "Aprovado"
+                      switchStatusQuestions == "Publicadas"
                         ? styles.selectedSwitchQuestionTemplate
                         : styles.notSelectedSwitchQuestionTemplate
                     }
-                    onPress={() => setSwitchStatusQuestions("Aprovado")}
+                    onPress={() => setSwitchStatusQuestions("Publicadas")}
                   >
                     <Text
                       style={
-                        switchStatusQuestions == "Aprovado"
+                        switchStatusQuestions == "Publicadas"
                           ? { fontWeight: 500 }
                           : { color: "white" }
                       }
                     >
-                      Aprovadas
+                      {usuario.adm ? "Publicadas" : "Enviadas"}
                     </Text>
                   </Pressable>
-                  <Pressable
-                    style={
-                      switchStatusQuestions == "Pendente"
-                        ? styles.selectedSwitchQuestionTemplate
-                        : styles.notSelectedSwitchQuestionTemplate
-                    }
-                    onPress={() => setSwitchStatusQuestions("Pendente")}
-                  >
-                    <Text
-                      style={
-                        switchStatusQuestions == "Pendente"
-                          ? { fontWeight: 500 }
-                          : { color: "white" }
-                      }
-                    >
-                      Pendentes
-                    </Text>
-                  </Pressable>
-                  {!usuario.adm && (
+                  {usuario.adm && (
                     <Pressable
                       style={
-                        switchStatusQuestions == "Negado"
+                        switchStatusQuestions == "Avaliação"
                           ? styles.selectedSwitchQuestionTemplate
                           : styles.notSelectedSwitchQuestionTemplate
                       }
-                      onPress={() => setSwitchStatusQuestions("Negado")}
+                      onPress={() => setSwitchStatusQuestions("Avaliação")}
                     >
                       <Text
                         style={
-                          switchStatusQuestions == "Negado"
+                          switchStatusQuestions == "Avaliação"
                             ? { fontWeight: 500 }
                             : { color: "white" }
                         }
                       >
-                        Negadas
+                        Avaliação
                       </Text>
                     </Pressable>
                   )}
                   <Pressable
                     style={
-                      switchStatusQuestions == "Rascunho"
+                      switchStatusQuestions == "Rascunhos"
                         ? styles.selectedSwitchQuestionTemplate
                         : styles.notSelectedSwitchQuestionTemplate
                     }
-                    onPress={() => setSwitchStatusQuestions("Rascunho")}
+                    onPress={() => setSwitchStatusQuestions("Rascunhos")}
                   >
                     <Text
                       style={
-                        switchStatusQuestions == "Rascunho"
+                        switchStatusQuestions == "Rascunhos"
                           ? { fontWeight: 500 }
                           : { color: "white" }
                       }
                     >
-                      Rascunhos
+                      Pendentes
                     </Text>
                   </Pressable>
                 </View>
@@ -1963,7 +1966,10 @@ const styles = StyleSheet.create({
     shadowRadius: 3.84,
     elevation: 5,
     alignItems: "center",
+    justifyContent: "center",
     gap: 5,
+    width: "auto",
+    alignSelf: "center",
   },
   selectedSwitchQuestionTemplate: {
     backgroundColor: "#BFECFF",

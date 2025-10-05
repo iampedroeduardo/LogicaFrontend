@@ -97,14 +97,15 @@ export default function CadastroAtividade({ navigation }) {
     fetchRanks();
   }, [usuario]);
 
-  async function getQuestions(status) {
+  async function getQuestions(query) {
     try {
       const { data } = await instance.get(
-        `/atividades/listar/${status}`,
+        `/atividades/listar/`,
         {
           headers: {
             Authorization: `Bearer ${usuario.token}`,
           },
+          params: query
         }
       );
       return data;
