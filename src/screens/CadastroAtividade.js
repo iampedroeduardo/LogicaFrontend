@@ -99,15 +99,12 @@ export default function CadastroAtividade({ navigation }) {
 
   async function getQuestions(query) {
     try {
-      const { data } = await instance.get(
-        `/atividades/listar/`,
-        {
-          headers: {
-            Authorization: `Bearer ${usuario.token}`,
-          },
-          params: query
-        }
-      );
+      const { data } = await instance.get(`/atividades/listar/`, {
+        headers: {
+          Authorization: `Bearer ${usuario.token}`,
+        },
+        params: query,
+      });
       return data;
     } catch (error) {
       console.error("Erro ao buscar atividades:", error);
@@ -115,6 +112,20 @@ export default function CadastroAtividade({ navigation }) {
       setSnackbarVisible(true);
       return [];
     }
+  }
+
+  async function openWindow(id, type) {
+    const question = await instance.get(
+      `/atividades/${
+        type === "codigo" ? "algoritmo" : "multiplaEscolha"
+      }/${id}`,
+      {
+        headers: {
+          Authorization: `Bearer ${usuario.token}`,
+        },
+      }
+    );
+    newWindow(type, question.data);
   }
 
   async function deslogar() {
@@ -127,15 +138,12 @@ export default function CadastroAtividade({ navigation }) {
     return null; // ou um componente de loading
   }
 
-  function newWindow(type) {
+  function newWindow(type, question) {
     const windowWidth = 300;
     const windowHeight = 500;
     const margin = 20;
     const maxAttempts = 100;
     let attempts = 0;
-
-    // Gera um ID único baseado no timestamp
-    const newId = Date.now();
 
     // Posição inicial padrão
     let newX = margin;
@@ -185,29 +193,63 @@ export default function CadastroAtividade({ navigation }) {
     }
 
     const newWindow = {
-      id: newId,
+      id: question ? question.id : Date.now(),
       type,
-      nome: getWindowTitle(type),
-      descricao: "",
-      script: "",
-      errosLacuna: [],
-      gabarito: "",
-      pergunta: "",
-      opcao1: "",
-      opcao2: "",
-      opcao3: "",
-      opcao4: "",
-      opcaoCorreta: "",
+      nome:
+        question && question.nome && question.nome.length > 0
+          ? question.nome
+          : getWindowTitle(type),
+      descricao:
+        question && question.descricao && question.descricao.length > 0
+          ? question.descricao
+          : "",
+      script:
+        question &&
+        question.script &&
+        question.script.length > 0 &&
+        type === "codigo"
+          ? question.script
+          : "",
+      errosLacuna:
+        question && type === "codigo"
+          ? question.errosLacuna.map((x) => {
+              return {
+                ...x,
+                type: x.tipo === "Erro" ? "error" : "gap",
+                start: x.posicaoInicial,
+                end: x.posicaoFinal,
+                distratores: x.distratores.map((y) => {
+                  return { ...y, text: y.descricao };
+                }),
+              };
+            })
+          : [],
+      gabarito: question && type === "multiplaEscolha" ? question.gabarito : "",
+      pergunta: question && type === "multiplaEscolha" ? question.pergunta : "",
+      opcao1: question && type === "multiplaEscolha" ? question.opcao1 : "",
+      opcao2: question && type === "multiplaEscolha" ? question.opcao2 : "",
+      opcao3: question && type === "multiplaEscolha" ? question.opcao3 : "",
+      opcao4: question && type === "multiplaEscolha" ? question.opcao4 : "",
+      opcaoCorreta: "a",
       x: newX,
       y: newY,
       closed: false,
       salvar: false,
-      rankId: null,
-      nivel: 0,
-      categoria: "",
-      tipo: "",
+      rankId: question ? question.rankId : null,
+      nivel: question && type === "multiplaEscolha" ? question.nivel : 0,
+      categoria:
+        question && question.categoria && question.categoria.length > 0
+          ? question.categoria
+          : "",
+      tipo:
+        question && type === "codigo"
+          ? "Programacao"
+          : question && type === "multiplaEscolha"
+          ? question.tipo
+          : "",
+      status: question ? question.status : "",
     };
-
+    console.log(newWindow);
     setWindows((prev) => [...prev, newWindow]);
   }
 
@@ -302,7 +344,6 @@ export default function CadastroAtividade({ navigation }) {
         setWindows([]);
       })
       .catch((error) => {
-        kjnkjxsnjkbmnbnmjkknjknkj;
         console.log(error);
         setSnackbarVisible(true);
         setMensagem("Erro ao salvar questões. Tente novamente.");
@@ -421,6 +462,7 @@ export default function CadastroAtividade({ navigation }) {
                 setWindows((prev) => prev.filter((w) => w.id !== window.id));
               }}
               getQuestions={getQuestions}
+              openWindow={openWindow}
             />
           ))
         )}
@@ -492,10 +534,20 @@ export default function CadastroAtividade({ navigation }) {
               </Text>
             </View>
             <View style={styles.dialogDescription}>
-              <Text style={{ fontSize: 14 }}>
-                Selecione as questões para enviar para avaliação, as demais
-                serão salvas como rascunhos.
-              </Text>
+              {usuario.adm ? (
+                <View>
+                  <Text style={{ fontSize: 14 }}>
+                    Dentre as questões feitas por você selecione as que deseja publicar, as demais ficarão em rascunho. Além disso, dentre as questões feitas por outros usuários selecione as que deseja aprovar, as demais serão negadas.
+                  </Text>
+                </View>
+              ) : (
+                <View>
+                  <Text style={{ fontSize: 14 }}>
+                    Selecione as questões para enviar para avaliação, as demais
+                    serão salvas como rascunhos.
+                  </Text>
+                </View>
+              )}
             </View>
 
             {/* Adicione ScrollView aqui */}

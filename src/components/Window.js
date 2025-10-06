@@ -24,6 +24,7 @@ export default function Window({
   ranks,
   usuario,
   getQuestions,
+  openWindow,
 }) {
   // Referências e Estados existentes...
   const pan = useRef(
@@ -39,6 +40,8 @@ export default function Window({
   const [abertoC, setAbertoC] = useState(false);
   const [abertoD, setAbertoD] = useState(false);
   const [abertoConfig, setAbertoConfig] = useState(false);
+  const [abertoFiltro, setAbertoFiltro] = useState(false);
+  const [aprovadasFiltro, setAprovadasFiltro] = useState(false);
   const [switchQuestionTemplate, setSwitchQuestionTemplate] = useState(
     window.type === "codigo" ? "error" : "question"
   );
@@ -46,7 +49,7 @@ export default function Window({
     useState("Publicadas");
   const [questions, setQuestions] = useState([]);
   const [openRank, setOpenRank] = useState(false);
-  const [rank, setRank] = useState(false);
+  const [rank, setRank] = useState(window.rankId);
   const [rankItens, setRankItens] = useState(
     ranks.map((rank) => ({
       label: rank.nome,
@@ -61,21 +64,29 @@ export default function Window({
     { label: "+++", value: 2 },
   ]);
   const [openTipo, setOpenTipo] = useState(false);
-  const [tipo, setTipo] = useState(false);
+  const [tipo, setTipo] = useState(window.tipo);
   const [tipos, setTipos] = useState([
     { label: "Raciocínio Lógico", value: "RaciocinioLogico" },
     { label: "Programação", value: "Programacao" },
   ]);
   const [openCategoria, setOpenCategoria] = useState(false);
-  const [categoria, setCategoria] = useState(false);
+  const [categoria, setCategoria] = useState(window.categoria);
   const [categorias, setCategorias] = useState([
-    { label: "Laços de Repetição", value: "LacosDeRepeticao" },
+    { label: "Laços de Repetição", value: "Repeticao" },
   ]);
   const [startSelection, setStartSelection] = useState(0);
   const [endSelection, setEndSelection] = useState(0);
   const [openedError, setOpenedError] = useState(0);
   const [openedGap, setOpenedGap] = useState(0); // Estado para a lacuna aberta
   const [isDragging, setIsDragging] = useState(false);
+
+  // Sincroniza o estado interno com as props da janela quando elas mudam
+  useEffect(() => {
+    setRank(window.rankId);
+    setNivel(window.nivel);
+    setTipo(window.tipo);
+    setCategoria(window.categoria);
+  }, [window.rankId, window.nivel, window.tipo, window.categoria]);
 
   const [inputText, setInputText] = useState(""); //inputText
 
@@ -96,7 +107,7 @@ export default function Window({
         const query = {
           pesquisa,
           aprovadas: switchStatusQuestions === "Publicadas" && aprovadas,
-          pendentes: switchStatusQuestions !== "Rascunhos" && pendentes,
+          pendentes: (switchStatusQuestions === "Avaliação" || (switchStatusQuestions === "Publicadas" && !usuario.adm)) && pendentes,
           negadas: switchStatusQuestions === "Publicadas" && negadas && !usuario.adm,
           rascunhos: switchStatusQuestions === "Rascunhos",
           minhas: !usuario.adm || minhas || switchStatusQuestions === "Rascunhos",
@@ -593,7 +604,7 @@ export default function Window({
                           : { color: "white" }
                       }
                     >
-                      Pendentes
+                      Rascunhos
                     </Text>
                   </Pressable>
                 </View>
@@ -604,7 +615,9 @@ export default function Window({
                         <View key={x.id} style={styles.questionItem}>
                           <Text style={styles.questionName}>{x.nome}</Text>
                           <View style={styles.questionActions}>
-                            <Pressable>
+                            <Pressable onPress={async () => {
+                              openWindow(x.id, x.type)
+                            }}>
                               <Icon
                                 source="square-edit-outline"
                                 size={14}
@@ -625,6 +638,8 @@ export default function Window({
                   )}
                 </View>
               </View>
+              
+              
             )}
             {window.type == "multiplaEscolha" && (
               <TextInput
@@ -650,7 +665,7 @@ export default function Window({
         )}
       </View>
       {window.type !== "minhasQuestoes" &&
-        !closed &&
+        !closed ?
         (window.type === "codigo" ? (
           <View style={styles.questionPopups}>
             <View style={styles.popupView}>
@@ -1772,7 +1787,52 @@ export default function Window({
               </>
             )}
           </View>
-        ))}
+        )) : (
+          <View style={styles.questionPopups}>
+              <View style={styles.popupView}>
+                  <Pressable
+                      style={styles.popupIcon}
+                      onPress={() => {
+                      setAbertoFiltro(!abertoFiltro);
+                    }}
+                  >
+                  <Icon source="filter" size={20} color="black" />
+                  </Pressable>
+                  {abertoFiltro && (
+                    <View style={styles.viewDesc}>
+                      <Text>Filtrar</Text>
+                      <Pressable
+                        style={styles.dialogQuestion}
+                        onPress={() => setAprovadasFiltro(true)}
+                      >
+                    <Text style={{ fontSize: 14, marginRight: 10, flex: 1 }}>
+                      Aprovadas
+                    </Text>
+                    <View
+                      style={{
+                        width: 24,
+                        height: 24,
+                        borderWidth: 2,
+                        borderColor: "#6446db",
+                        backgroundColor: aprovadas == "true"
+                          ? "#6446db"
+                          : "transparent",
+                        borderRadius: 4,
+                        justifyContent: "center",
+                        alignItems: "center",
+                      }}
+                    >
+                      {aprovadas (
+                        <Icon source="check" size={16} color="white" />
+                      )}
+                    </View>
+                  </Pressable>
+                    </View>
+                  )}
+                  </View>
+                </View>
+        )}
+        
     </Animated.View>
   );
 }
