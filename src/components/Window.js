@@ -17,6 +17,36 @@ import { javascript } from "@codemirror/lang-javascript";
 import { Decoration, EditorView, WidgetType } from "@codemirror/view";
 import CodeMirror from "@uiw/react-codemirror";
 
+// Componente reutilizável para o Checkbox de Filtro
+const FilterCheckbox = ({ label, value, onValueChange }) => (
+  <Pressable
+    style={styles.dialogQuestion}
+    onPress={() => onValueChange(!value)}
+  >
+    <Text style={{ fontSize: 14, marginRight: 10, flex: 1 }}>
+      {label}
+    </Text>
+    <View
+      style={{
+        width: 24,
+        height: 24,
+        borderWidth: 2,
+        borderColor: "#6446db",
+        backgroundColor: value
+          ? "#6446db"
+          : "transparent",
+        borderRadius: 4,
+        justifyContent: "center",
+        alignItems: "center",
+      }}
+    >
+      {value && (
+        <Icon source="check" size={16} color="white" />
+      )}
+    </View>
+  </Pressable>
+);
+
 export default function Window({
   window,
   updateWindow,
@@ -42,6 +72,8 @@ export default function Window({
   const [abertoConfig, setAbertoConfig] = useState(false);
   const [abertoFiltro, setAbertoFiltro] = useState(false);
   const [aprovadasFiltro, setAprovadasFiltro] = useState(false);
+  const [pendentesFiltro, setPendentesFiltro] = useState(false);
+  const [negadasFiltro, setNegadasFiltro] = useState(false);
   const [switchQuestionTemplate, setSwitchQuestionTemplate] = useState(
     window.type === "codigo" ? "error" : "question"
   );
@@ -106,7 +138,10 @@ export default function Window({
         // 2. Corrigido 'user' para 'usuario' e 'switchQuestionTemplate' para 'switchStatusQuestions'.
         const query = {
           pesquisa,
+          aprovadasFiltro: switchStatusQuestions === "Publicadas" && aprovadasFiltro,
           aprovadas: switchStatusQuestions === "Publicadas" && aprovadas,
+          pendentesFiltro: switchStatusQuestions === "Publicadas" && pendentesFiltro,
+          negadasFiltro: switchStatusQuestions === "Publicadas" && negadasFiltro,
           pendentes: (switchStatusQuestions === "Avaliação" || (switchStatusQuestions === "Publicadas" && !usuario.adm)) && pendentes,
           negadas: switchStatusQuestions === "Publicadas" && negadas && !usuario.adm,
           rascunhos: switchStatusQuestions === "Rascunhos",
@@ -115,7 +150,7 @@ export default function Window({
         setQuestions(await getQuestions(query));
       }
       fetchMyQuestions();
-    }, [switchStatusQuestions, pesquisa, aprovadas, pendentes, negadas, minhas]);
+    }, [switchStatusQuestions, pesquisa, aprovadas, pendentes, negadas, minhas, aprovadasFiltro, pendentesFiltro, negadasFiltro]);
   }
   // Função para lidar com o clique no widget do editor
   const handleHighlightClick = (item) => {
@@ -1800,35 +1835,29 @@ export default function Window({
                   </Pressable>
                   {abertoFiltro && (
                     <View style={styles.viewDesc}>
-                      <Text>Filtrar</Text>
-                      <Pressable
-                        style={styles.dialogQuestion}
-                        onPress={() => setAprovadasFiltro(true)}
-                      >
-                    <Text style={{ fontSize: 14, marginRight: 10, flex: 1 }}>
-                      Aprovadas
-                    </Text>
-                    <View
-                      style={{
-                        width: 24,
-                        height: 24,
-                        borderWidth: 2,
-                        borderColor: "#6446db",
-                        backgroundColor: aprovadas == "true"
-                          ? "#6446db"
-                          : "transparent",
-                        borderRadius: 4,
-                        justifyContent: "center",
-                        alignItems: "center",
-                      }}
-                    >
-                      {aprovadas (
-                        <Icon source="check" size={16} color="white" />
+                      <View style={styles.popupQuestions}>
+                      <Text style={{fontWeight: 'bold', fontSize: 16, marginBottom: 10}}>Filtrar por Status</Text>
+                      <FilterCheckbox 
+                        label="Aprovadas"
+                        value={aprovadasFiltro}
+                        onValueChange={setAprovadasFiltro}
+                      />
+                      <FilterCheckbox 
+                        label="Pendentes"
+                        value={pendentesFiltro}
+                        onValueChange={setPendentesFiltro}
+                      />
+                      {!usuario.adm && (
+                        <FilterCheckbox 
+                        label="Negadas"
+                        value={negadasFiltro}
+                        onValueChange={setNegadasFiltro}
+                      />
                       )}
                     </View>
-                  </Pressable>
-                    </View>
+                     </View>
                   )}
+                  
                   </View>
                 </View>
         )}
@@ -2178,6 +2207,12 @@ const styles = StyleSheet.create({
     display: "flex",
     flexDirection: "row",
     gap: 10,
-    alignItems: "center",
+  
+  },
+  dialogQuestion: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    paddingVertical: 8,
   },
 });
