@@ -248,6 +248,7 @@ export default function CadastroAtividade({ navigation }) {
           ? question.tipo
           : "",
       status: question ? question.status : "",
+      novo: !question
     };
     console.log(newWindow);
     setWindows((prev) => [...prev, newWindow]);
