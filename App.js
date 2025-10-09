@@ -2,16 +2,16 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { NavigationContainer } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { useEffect, useState } from "react";
-import { ActivityIndicator, Platform, StyleSheet, View } from "react-native";
+import { ActivityIndicator, StyleSheet, View } from "react-native";
 import { DefaultTheme, PaperProvider } from "react-native-paper";
 import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityIcons";
 import Cadastro from "./src/screens/Cadastro";
 import CadastroAtividade from "./src/screens/CadastroAtividade";
 import Entrar from "./src/screens/Entrar";
 import Home from "./src/screens/Home";
-import HomeTeste from "./src/screens/HomeTeste";
 import PaginaInicial from "./src/screens/PaginaInicial";
-import Teste from "./src/screens/Teste"
+import Teste from "./src/screens/Teste";
+import Questao from "./src/screens/Questao";
 
 const Stack = createNativeStackNavigator();
 const theme = {
@@ -53,8 +53,11 @@ export default function AppNavigator() {
       theme={theme}
     >
       <NavigationContainer>
-        <Stack.Navigator
+        {/* <Stack.Navigator
           initialRouteName={usuario != null ? Platform.OS === "web" ? "CadastroAtividade" : "Home" : "PaginaInicial"}
+        > */}
+        <Stack.Navigator
+          initialRouteName={usuario != null ? "Home" : "PaginaInicial"}
         >
           <Stack.Screen
             name="PaginaInicial"
@@ -84,6 +87,11 @@ export default function AppNavigator() {
           <Stack.Screen
             name="Entrar"
             component={Entrar}
+            options={{ headerShown: false }}
+          />
+          <Stack.Screen
+            name="Questao"
+            component={Questao}
             options={{ headerShown: false }}
           />
         </Stack.Navigator>

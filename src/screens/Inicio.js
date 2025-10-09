@@ -19,7 +19,7 @@ export default function Inicio({ navigation }) {
               end={{ x: 0.5, y: 1 }}
               >
               {/* acessar trilha aleatória */} 
-              <Pressable style={styles.caminhobutton}>
+              <Pressable style={styles.caminhobutton} onPress={() => navigation.navigate("Questao")}>
                 <Icon source="play" size={85} color="black"/>
               </Pressable>
               <View style={styles.caminhotext}>
