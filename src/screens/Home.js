@@ -6,14 +6,13 @@ import Perfil from "./Perfil";
 import { BottomNavigation, useTheme } from "react-native-paper";
 import CadastroAtividade from "./CadastroAtividade";
 
-
 export default function Home({ navigation }) {
   const [index, setIndex] = useState(0);
   const theme = useTheme();
   const [routes] = useState([
-    { key: 'inicio', title: 'Início', focusedIcon: 'home'},
-    { key: 'ranking', title: 'Ranking', focusedIcon: 'trophy' },
-    { key: 'perfil', title: 'Perfil', focusedIcon: 'account-circle' },
+    { key: "inicio", title: "Início", focusedIcon: "home" },
+    { key: "ranking", title: "Ranking", focusedIcon: "trophy" },
+    { key: "perfil", title: "Perfil", focusedIcon: "account-circle" },
   ]);
 
   const [usuario, setUsuario] = useState(null);
@@ -32,7 +31,11 @@ export default function Home({ navigation }) {
         setLoading(false);
       }
     };
-
+    async function deslogar() {
+      await AsyncStorage.removeItem("usuario");
+      setVisible(false);
+      navigation.navigate("PaginaInicial");
+    }
     buscarUsuario();
   }, []); // O array vazio [] garante que este efeito rode apenas uma vez
 
@@ -45,7 +48,7 @@ export default function Home({ navigation }) {
   }
 
   const renderScene = BottomNavigation.SceneMap({
-    inicio: () => <Inicio navigation={navigation} />,
+    inicio: () => <Inicio navigation={navigation} usuario={usuario} />,
     ranking: () => <Text>Ranking</Text>, // Componente de Ranking aqui
     perfil: () => <Perfil navigation={navigation} usuario={usuario} />,
   });
@@ -60,21 +63,21 @@ export default function Home({ navigation }) {
         colors: {
           onSurfaceVariant: "#EEEEEE", //itens não selecionados cor
           primary: "#BFECFF", //item selecionado cor (testar no celular!!!!)
-          secondaryContainer: "transparent" //borda itens selecionados cor
-        }
+          secondaryContainer: "transparent", //borda itens selecionados cor
+        },
       }}
     />
   );
 }
 
 const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
-        backgroundColor: "#EEEEEE",
-    },
-    text: {
-        fontSize: 24
-    }
-})
+  container: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "#EEEEEE",
+  },
+  text: {
+    fontSize: 24,
+  },
+});

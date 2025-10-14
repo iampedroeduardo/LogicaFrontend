@@ -21,7 +21,7 @@ export default function DescricaoQuestao({ questao, modo }) {
     },
     div: {
       width: "100%",
-      height: "85%",
+      height: "89%",
       borderRadius: 15,
       backgroundColor: "white",
       shadowColor: "#000",
@@ -39,7 +39,7 @@ export default function DescricaoQuestao({ questao, modo }) {
     },
     pergunta: {
       width: "100%",
-      height: "12%",
+      height: "10%",
       display: "flex",
       justifyContent: "center",
       paddingHorizontal: 10,
@@ -50,20 +50,21 @@ export default function DescricaoQuestao({ questao, modo }) {
     },
     descricaoText: {
       fontSize: 18,
-      textAlign: "justify"
+      textAlign: "justify",
+      width: "100%",
     },
   });
   return (
     <LinearGradient
       colors={["#BFECFF", "#6446DB"]}
       start={{ x: 0, y: 0 }}
-      end={{ x: 0.5, y: 1 }}
+      end={{ x: 1, y: 1 }}
       style={styles.borderDiv}
     >
       <View style={styles.div}>
         <Text style={styles.perguntaText}>{questao.nome}</Text>
         <Text style={styles.descricaoText}>
-          {modo === "descricao" ? questao.descricao : questao.gabarito}
+          {modo === "questao" ? questao.descricao : questao.gabarito}
         </Text>
       </View>
       <View style={styles.pergunta}>

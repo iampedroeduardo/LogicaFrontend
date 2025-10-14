@@ -1,14 +1,14 @@
-import AntDesign from '@expo/vector-icons/AntDesign';
-import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { Icon } from "react-native-paper";
 import Logo from "../components/Logo";
 
 
-export default function Inicio({ navigation }) {
+export default function Inicio({ navigation, usuario }) {
+  if (!usuario) {
+    return null;
+  }
   return(
-
     <View style={styles.container}>
           <Logo />
           <View style={{flexDirection: 'column', justifyContent: 'center', alignItems: 'center',  marginVertical: 20, height: "80%", gap: 25}}>
@@ -18,9 +18,9 @@ export default function Inicio({ navigation }) {
               start={{ x: 0, y: 0 }}
               end={{ x: 0.5, y: 1 }}
               >
-              {/* acessar trilha aleatória */} 
-              <Pressable style={styles.caminhobutton} onPress={() => navigation.navigate("Questao")}>
-                <Icon source="play" size={85} color="black"/>
+              {/* acessar trilha aleatória */}
+              <Pressable style={styles.caminhobutton} onPress={() => navigation.navigate("Questao", { usuario })}>
+                <Icon source="play" size={95} color="black"/>
               </Pressable>
               <View style={styles.caminhotext}>
                 <Text style={styles.titulo}>Iniciar</Text>
@@ -70,7 +70,6 @@ const styles = StyleSheet.create({
     backgroundColor: "#EEEEEE",
   },
   caminhobutton: {
-    padding: 15,
     alignItems: "center",
     justifyContent: "center",
     width: 100,
@@ -109,7 +108,6 @@ const styles = StyleSheet.create({
   },
   texto: {
     fontSize: 15,
-    color: '#4E4E4E'
+    color: '#ccc'
   }
-
 })
