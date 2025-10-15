@@ -12,6 +12,8 @@ import Home from "./src/screens/Home";
 import PaginaInicial from "./src/screens/PaginaInicial";
 import Teste from "./src/screens/Teste";
 import Questao from "./src/screens/Questao";
+import { Platform } from "react-native";
+
 
 const Stack = createNativeStackNavigator();
 const theme = {
@@ -53,12 +55,12 @@ export default function AppNavigator() {
       theme={theme}
     >
       <NavigationContainer>
-        {/* <Stack.Navigator
-          initialRouteName={usuario != null ? Platform.OS === "web" ? "CadastroAtividade" : "Home" : "PaginaInicial"}
-        > */}
         <Stack.Navigator
-          initialRouteName={usuario != null ? "Home" : "PaginaInicial"}
+          initialRouteName={usuario != null ? Platform.OS === "web" ? "CadastroAtividade" : "Home" : "PaginaInicial"}
         >
+        {/* <Stack.Navigator
+          initialRouteName={usuario != null ? "Home" : "PaginaInicial"}
+        > */}
           <Stack.Screen
             name="PaginaInicial"
             component={PaginaInicial}

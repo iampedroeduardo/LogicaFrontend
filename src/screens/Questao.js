@@ -1,25 +1,25 @@
-import { useRef, useEffect, useState } from "react";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { LinearGradient } from "expo-linear-gradient";
+import { useEffect, useRef, useState } from "react";
 import {
+  ActivityIndicator,
+  Animated,
   Pressable,
   StyleSheet,
-  View,
-  ActivityIndicator,
   Text,
-  Animated,
+  View,
 } from "react-native";
-import { Icon, Dialog, Portal } from "react-native-paper";
+import { Dialog, Icon, Portal } from "react-native-paper";
+import instance from "../axios";
 import Button from "../components/Button";
 import DescricaoQuestao from "../components/DescricaoQuestao";
 import Logo from "../components/Logo";
 import Opcoes from "../components/Opcoes";
-import instance from "../axios";
-import { LinearGradient } from "expo-linear-gradient";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export default function Questao({ navigation, route }) {
   const { usuario } = route.params;
-  const [usuarioState, setUsuario] = useState(usuario);
-  const animatedXp = useRef(new Animated.Value(0)).current;
+  const [usuarioAtual, setUsuarioAtual] = useState(usuario);
+  const animatedXp = useRef(new Animated.Value(usuarioAtual.xp)).current;
   const [modo, setModo] = useState("questao");
   const [respondida, setRespondida] = useState(false);
   const [opcaoSelecionada, setOpcaoSelecionada] = useState(null);
@@ -29,7 +29,6 @@ export default function Questao({ navigation, route }) {
   const [subiuNivel, setSubiuNivel] = useState(false);
   const [subiuXp, setSubiuXp] = useState(false);
   const [desceuXp, setDesceuXp] = useState(false);
-  const [xpDiferenca, setXpDiferenca] = useState(0);
   async function trilha(isPrimeiraQuestao, isUltimaQuestao) {
     try {
       const response = await instance.post(
@@ -50,15 +49,16 @@ export default function Questao({ navigation, route }) {
         },
         {
           headers: {
-            Authorization: `Bearer ${usuario.token}`,
+            Authorization: `Bearer ${usuarioAtual.token}`,
           },
         }
       );
       if (!isUltimaQuestao) {
         setQuestao(response.data);
+        setOpcaoSelecionada(null);
+        setRespondida(false);
       }
-      setOpcaoSelecionada(null);
-      setRespondida(false);
+      return;
     } catch (error) {
       console.log(error);
     }
@@ -67,37 +67,32 @@ export default function Questao({ navigation, route }) {
     try {
       const response = await instance.get("/atualizar-dados", {
         headers: {
-          Authorization: `Bearer ${usuario.token}`,
+          Authorization: `Bearer ${usuarioAtual.token}`,
         },
       });
-      console.log(response);
-      console.log(usuario)
-      if (response.rankId !== usuario.rankId) {
+      if (response.data.rank.id !== usuarioAtual.rank.id) {
         setSubiuRank(true);
         setSubiuNivel(false);
         setSubiuXp(false);
         setDesceuXp(false);
-        setXpDiferenca(response.xp);
-      } else if (response.nivel !== usuario.nivel) {
+        animatedXp.setValue(0); // Reseta a barra de XP para o início
+      } else if (response.data.nivel !== usuarioAtual.nivel) {
         setSubiuRank(false);
         setSubiuNivel(true);
         setSubiuXp(false);
         setDesceuXp(false);
-        setXpDiferenca(response.xp);
-      } else if (response.xp !== usuario.xp) {
+        animatedXp.setValue(0); // Reseta a barra de XP para o início
+      } else if (response.data.xp !== usuarioAtual.xp) {
         setSubiuRank(false);
         setSubiuNivel(false);
-        setSubiuXp(response.xp > usuario.xp);
-        setDesceuXp(response.xp <= usuario.xp);
-        setXpDiferenca(
-          response.xp > usuario.xp
-            ? response.xp - usuario.xp
-            : usuario.xp - response.xp
-        );
+        const ganhouXp = response.data.xp > usuarioAtual.xp;
+        setSubiuXp(ganhouXp);
+        setDesceuXp(!ganhouXp);
+        // A animação usará o valor total, não a diferença
       }
+      setUsuarioAtual(response.data);
       setDialogVisible(true);
-      await AsyncStorage.setItem("usuario", JSON.stringify(response));
-      setUsuario(response);
+      await AsyncStorage.setItem("usuario", JSON.stringify(response.data));
     } catch (error) {
       console.log(error);
     }
@@ -108,7 +103,7 @@ export default function Questao({ navigation, route }) {
   useEffect(() => {
     if (dialogVisible) {
       Animated.timing(animatedXp, {
-        toValue: usuario.xp + xpDiferenca,
+        toValue: usuarioAtual.xp,
         duration: 1000, // 1 segundo
         useNativeDriver: false, // não pode ser true porque estamos animando "width"
       }).start();
@@ -178,7 +173,10 @@ export default function Questao({ navigation, route }) {
       <Portal>
         <Dialog
           visible={dialogVisible}
-          onDismiss={() => setDialogVisible(false)}
+          onDismiss={() => {
+            setDialogVisible(false);
+            navigation.goBack();
+          }}
           style={styles.dialog}
         >
           <View style={styles.dialogContent}>
@@ -192,12 +190,14 @@ export default function Questao({ navigation, route }) {
               </Text>
             ) : subiuXp ? (
               <Text style={styles.dialogText}>
-                Olha só! Você ganhou {xpDiferenca} 📈 de xp{" "}
+                Olha só! Você ganhou{" "}
+                {usuarioAtual.xp - usuario.xp} 📈 de xp{" "}
               </Text>
             ) : (
               desceuXp && (
                 <Text style={styles.dialogText}>
-                  Oops! Você perdeu {xpDiferenca} de xp 📉
+                  Oops! Você perdeu{" "}
+                  {usuario.xp - usuarioAtual.xp} de xp 📉
                 </Text>
               )
             )}
@@ -211,7 +211,7 @@ export default function Questao({ navigation, route }) {
             >
               <View style={{ width: 80, height: 80 }}>
                 <View style={{ position: "absolute", left: 0, top: 0 }}>
-                  <Icon source="shield" size={80} color={usuario.rank.cor} />
+                  <Icon source="shield" size={80} color={usuarioAtual.rank.cor} />
                 </View>
                 <View style={{ position: "absolute", left: 0, top: 0 }}>
                   <Icon source="shield-outline" size={80} color="black" />
@@ -219,7 +219,7 @@ export default function Questao({ navigation, route }) {
                 <Text
                   style={{ fontSize: 15, textAlign: "center", marginTop: 15 }}
                 >
-                  {"+".repeat(usuario.nivel)}
+                  {"+".repeat(usuarioAtual.nivel)}
                 </Text>
               </View>
               <Icon source="arrow-right" size={25} color="black" />
@@ -229,9 +229,9 @@ export default function Questao({ navigation, route }) {
                     source="shield"
                     size={80}
                     color={
-                      usuario.nivel == 2
-                        ? usuario.proximoRank.cor
-                        : usuario.rank.cor
+                      usuarioAtual.nivel == 2
+                        ? usuarioAtual.proximoRank.cor
+                        : usuarioAtual.rank.cor
                     }
                   />
                 </View>
@@ -241,7 +241,7 @@ export default function Questao({ navigation, route }) {
                 <Text
                   style={{ fontSize: 20, textAlign: "center", marginTop: 15 }}
                 >
-                  {"+".repeat(usuario.nivel == 2 ? 0 : usuario.nivel + 1)}
+                  {"+".repeat(usuarioAtual.nivel == 2 ? 0 : usuarioAtual.nivel + 1)}
                 </Text>
               </View>
             </View>

@@ -81,11 +81,13 @@ export default function CadastroAtividade({ navigation }) {
     async function fetchRanks() {
       if (usuario && usuario.token) {
         try {
+          console.log(usuario)
           const { data } = await instance.get(`/atividades/ranks`, {
             headers: {
               Authorization: `Bearer ${usuario.token}`,
             },
           });
+          console.log(data)
           setRanks(data);
         } catch (error) {
           console.error("Erro ao buscar ranks:", error);
@@ -95,6 +97,7 @@ export default function CadastroAtividade({ navigation }) {
       }
     }
     fetchRanks();
+    console.log(ranks)
   }, [usuario]);
 
   async function getQuestions(query) {

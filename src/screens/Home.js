@@ -1,10 +1,10 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { use, useEffect, useState } from "react";
+import { useFocusEffect } from "@react-navigation/native";
+import React, { useState } from "react";
 import { ActivityIndicator, StyleSheet, Text, View } from "react-native";
+import { BottomNavigation, useTheme } from "react-native-paper";
 import Inicio from "./Inicio";
 import Perfil from "./Perfil";
-import { BottomNavigation, useTheme } from "react-native-paper";
-import CadastroAtividade from "./CadastroAtividade";
 
 export default function Home({ navigation }) {
   const [index, setIndex] = useState(0);
@@ -18,26 +18,24 @@ export default function Home({ navigation }) {
   const [usuario, setUsuario] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    const buscarUsuario = async () => {
-      try {
-        const usuarioJSON = await AsyncStorage.getItem("usuario");
-        if (usuarioJSON) {
-          setUsuario(JSON.parse(usuarioJSON));
+  useFocusEffect(
+    React.useCallback(() => {
+      const buscarUsuario = async () => {
+        setLoading(true);
+        try {
+          const usuarioJSON = await AsyncStorage.getItem("usuario");
+          if (usuarioJSON) {
+            setUsuario(JSON.parse(usuarioJSON));
+          }
+        } catch (error) {
+          console.error("Falha ao buscar usuário do storage", error);
+        } finally {
+          setLoading(false);
         }
-      } catch (error) {
-        console.error("Falha ao buscar usuário do storage", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-    async function deslogar() {
-      await AsyncStorage.removeItem("usuario");
-      setVisible(false);
-      navigation.navigate("PaginaInicial");
-    }
-    buscarUsuario();
-  }, []); // O array vazio [] garante que este efeito rode apenas uma vez
+      };
+      buscarUsuario();
+    }, [])
+  );
 
   if (loading) {
     return (

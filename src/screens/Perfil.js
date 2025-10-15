@@ -191,7 +191,7 @@ export default function Perfil({ navigation, usuario }) {
             >
               <LinearGradient
                 style={{
-                  width: "90%", //de acordo com o xp
+                  width: usuario.xp + "%", //de acordo com o xp
                   height: 5,
                   backgroundColor: "#fff",
                   borderRadius: 50,

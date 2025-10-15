@@ -9,7 +9,6 @@ export default function Opcoes({
   setOpcaoSelecionada,
   respondida,
 }) {
-  console.log(opcoes)
   const styles = StyleSheet.create({
     opcoes: {
       display: "flex",
