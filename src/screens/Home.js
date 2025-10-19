@@ -33,6 +33,10 @@ export default function Home({ navigation }) {
           setLoading(false);
         }
       };
+      async function deslogar() {
+        await AsyncStorage.removeItem("usuario");
+        navigation.navigate("PaginaInicial");
+      }
       buscarUsuario();
     }, [])
   );

@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import {
   ActivityIndicator,
   Animated,
+  Image,
   Pressable,
   StyleSheet,
   Text,
@@ -15,6 +16,7 @@ import Button from "../components/Button";
 import DescricaoQuestao from "../components/DescricaoQuestao";
 import Logo from "../components/Logo";
 import Opcoes from "../components/Opcoes";
+import Algoritmo from "../components/Algoritmo";
 
 export default function Questao({ navigation, route }) {
   const { usuario } = route.params;
@@ -29,6 +31,10 @@ export default function Questao({ navigation, route }) {
   const [subiuNivel, setSubiuNivel] = useState(false);
   const [subiuXp, setSubiuXp] = useState(false);
   const [desceuXp, setDesceuXp] = useState(false);
+  const [naoTemQuestao, setNaoTemQuestao] = useState(false);
+
+  const [mensagem, setMensagem] = useState("");
+  const [loading, setLoading] = useState(true);
   async function trilha(isPrimeiraQuestao, isUltimaQuestao) {
     try {
       const response = await instance.post(
@@ -54,45 +60,83 @@ export default function Questao({ navigation, route }) {
         }
       );
       if (!isUltimaQuestao) {
+        if (response.data === null) {
+          setNaoTemQuestao(true);
+          if (!isPrimeiraQuestao) {
+            const [subiuRank, subiuNivel, subiuXp, desceuXp, diferencaXp] = await atualizarDados(true);
+            setMensagem(
+              (subiuRank
+                ? "Parabéns! Você subiu de Rank! 🎉"
+                : subiuNivel
+                ? "Parabéns! Você subiu de nível! 🎉"
+                : subiuXp
+                ? "Olha só! Você ganhou " + diferencaXp + " de xp. 📈"
+                : "Oops! Você perdeu " + diferencaXp + " de xp. 📉") +
+                "\n\n Infelizmente não existem questões disponíveis no momento. 😪"
+            );
+          } else {
+            setMensagem(
+              "Infelizmente não existem questões disponíveis no momento. 😪"
+            );
+          }
+          setLoading(false);
+          return;
+        }
         setQuestao(response.data);
         setOpcaoSelecionada(null);
         setRespondida(false);
       }
+      setLoading(false);
       return;
     } catch (error) {
       console.log(error);
     }
   }
-  async function atualizarDados() {
+  async function atualizarDados(semQuestoes) {
     try {
       const response = await instance.get("/atualizar-dados", {
         headers: {
           Authorization: `Bearer ${usuarioAtual.token}`,
         },
       });
+
+      let mudouRank = false,
+        mudouNivel = false,
+        ganhouXp = false,
+        perdeuXp = false;
+
       if (response.data.rank.id !== usuarioAtual.rank.id) {
-        setSubiuRank(true);
+        mudouRank = true;
+        setSubiuRank(mudouRank);
         setSubiuNivel(false);
         setSubiuXp(false);
         setDesceuXp(false);
         animatedXp.setValue(0); // Reseta a barra de XP para o início
       } else if (response.data.nivel !== usuarioAtual.nivel) {
+        mudouNivel = true;
         setSubiuRank(false);
-        setSubiuNivel(true);
+        setSubiuNivel(mudouNivel);
         setSubiuXp(false);
         setDesceuXp(false);
         animatedXp.setValue(0); // Reseta a barra de XP para o início
       } else if (response.data.xp !== usuarioAtual.xp) {
+        ganhouXp = response.data.xp > usuarioAtual.xp;
+        perdeuXp = !ganhouXp;
         setSubiuRank(false);
         setSubiuNivel(false);
-        const ganhouXp = response.data.xp > usuarioAtual.xp;
         setSubiuXp(ganhouXp);
-        setDesceuXp(!ganhouXp);
-        // A animação usará o valor total, não a diferença
+        setDesceuXp(perdeuXp);
       }
-      setUsuarioAtual(response.data);
-      setDialogVisible(true);
       await AsyncStorage.setItem("usuario", JSON.stringify(response.data));
+      if (mudouRank || mudouNivel || ganhouXp || perdeuXp) {
+        setUsuarioAtual(response.data);
+        if (semQuestoes) {
+          return [mudouRank, mudouNivel, ganhouXp, perdeuXp, response.data.xp - usuario.xp];
+        }
+        setDialogVisible(true);
+      } else {
+        navigation.goBack();
+      }
     } catch (error) {
       console.log(error);
     }
@@ -109,10 +153,35 @@ export default function Questao({ navigation, route }) {
       }).start();
     }
   }, [dialogVisible]);
-  if (!questao) {
+  if (loading) {
     return (
       <View style={styles.container}>
         <ActivityIndicator size="large" color="#6446db" />
+      </View>
+    );
+  } else if (naoTemQuestao) {
+    return (
+      <View style={styles.container}>
+        <View style={styles.header}>
+          <Logo />
+          <Pressable
+            style={styles.xButton}
+            onPress={async () => {
+              navigation.goBack();
+            }}
+          >
+            <View style={styles.xInsideButton}>
+              <Icon source="close" size={24} color="black" />
+            </View>
+          </Pressable>
+        </View>
+        <View style={styles.viewSemQuestoes}>
+          <Image
+            source={require("../../assets/images/axolote_png.png")}
+            style={styles.axolote}
+          ></Image>
+          <Text style={styles.semQuestaoText}>{mensagem}</Text>
+        </View>
       </View>
     );
   }
@@ -135,7 +204,7 @@ export default function Questao({ navigation, route }) {
         </Pressable>
       </View>
       <DescricaoQuestao questao={questao} modo={modo} />
-      {questao.tipo === "multiplaEscolha" && (
+      {questao.tipo === "multiplaEscolha" ? (
         <Opcoes
           opcoes={questao.opcoes}
           opcaoCerta={questao.opcaoCerta}
@@ -143,7 +212,7 @@ export default function Questao({ navigation, route }) {
           setOpcaoSelecionada={setOpcaoSelecionada}
           respondida={respondida}
         />
-      )}
+      ) : (<Algoritmo questao={questao} />)}
       {opcaoSelecionada !== null &&
         (respondida ? (
           <View style={styles.buttons}>
@@ -190,14 +259,12 @@ export default function Questao({ navigation, route }) {
               </Text>
             ) : subiuXp ? (
               <Text style={styles.dialogText}>
-                Olha só! Você ganhou{" "}
-                {usuarioAtual.xp - usuario.xp} 📈 de xp{" "}
+                Olha só! Você ganhou {usuarioAtual.xp - usuario.xp} 📈 de xp{" "}
               </Text>
             ) : (
               desceuXp && (
                 <Text style={styles.dialogText}>
-                  Oops! Você perdeu{" "}
-                  {usuario.xp - usuarioAtual.xp} de xp 📉
+                  Oops! Você perdeu {usuario.xp - usuarioAtual.xp} de xp 📉
                 </Text>
               )
             )}
@@ -211,7 +278,11 @@ export default function Questao({ navigation, route }) {
             >
               <View style={{ width: 80, height: 80 }}>
                 <View style={{ position: "absolute", left: 0, top: 0 }}>
-                  <Icon source="shield" size={80} color={usuarioAtual.rank.cor} />
+                  <Icon
+                    source="shield"
+                    size={80}
+                    color={usuarioAtual.rank.cor}
+                  />
                 </View>
                 <View style={{ position: "absolute", left: 0, top: 0 }}>
                   <Icon source="shield-outline" size={80} color="black" />
@@ -241,7 +312,9 @@ export default function Questao({ navigation, route }) {
                 <Text
                   style={{ fontSize: 20, textAlign: "center", marginTop: 15 }}
                 >
-                  {"+".repeat(usuarioAtual.nivel == 2 ? 0 : usuarioAtual.nivel + 1)}
+                  {"+".repeat(
+                    usuarioAtual.nivel == 2 ? 0 : usuarioAtual.nivel + 1
+                  )}
                 </Text>
               </View>
             </View>
@@ -370,5 +443,22 @@ const styles = StyleSheet.create({
     fontSize: 18,
     textAlign: "center",
     fontWeight: "bold",
+  },
+  viewSemQuestoes: {
+    alignItems: "center",
+    justifyContent: "center",
+    display: "flex",
+    height: "80%",
+    gap: 8,
+  },
+  axolote: {
+    width: 100,
+    height: 78,
+  },
+  semQuestaoText: {
+    fontSize: 16,
+    color: "#4E4E4E",
+    textAlign: "center",
+    paddingHorizontal: 20,
   },
 });

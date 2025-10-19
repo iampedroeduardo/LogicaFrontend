@@ -5,7 +5,7 @@ export default function DescricaoQuestao({ questao, modo }) {
   const styles = StyleSheet.create({
     borderDiv: {
       width: "100%",
-      height: questao.tipo === "multiplaEscolha" ? "40%" : "30%",
+      height: questao.tipo === "multiplaEscolha" ? "40%" : "25%",
       display: "flex",
       justifyContent: "space-between",
       borderRadius: 15,
@@ -68,7 +68,7 @@ export default function DescricaoQuestao({ questao, modo }) {
         </Text>
       </View>
       <View style={styles.pergunta}>
-        <Text style={styles.perguntaText}>{questao.pergunta}</Text>
+        <Text style={styles.perguntaText}>{questao.tipo === "multiplaEscolha" ? questao.pergunta : questao.tipoErroLacuna === "Erro" ? "Encontre o erro" : "Complete as lacunas"}</Text>
       </View>
     </LinearGradient>
   );
