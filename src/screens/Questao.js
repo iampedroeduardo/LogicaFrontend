@@ -43,13 +43,20 @@ export default function Questao({ navigation, route }) {
           isPrimeiraQuestao,
           isUltimaQuestao,
           questao: !isPrimeiraQuestao
-            ? {
+            ? questao.tipo === "multiplaEscolha" ?{
                 id: questao.id,
                 opcao: questao.opcoes[opcaoSelecionada],
                 rankId: questao.rankId,
                 nivel: questao.nivel,
                 tipo: questao.tipo,
                 opcaoCerta: questao.opcoes[questao.opcaoCerta],
+              } : {
+                id: questao.id,
+                tipo: questao.tipo,
+                tipoErroLacuna: questao.tipoErroLacuna,
+                acertou: questao.tipoErroLacuna === "Erro" ? (opcaoSelecionada.id === questao.espacoErrado.id) : false,
+                espacoErrado: questao.tipoErroLacuna === "Erro" ? questao.espacoErrado : null,
+                lacunas: questao.tipoErroLacuna === "Lacuna" ? questao.lacunas : null
               }
             : null,
         },
@@ -212,7 +219,7 @@ export default function Questao({ navigation, route }) {
           setOpcaoSelecionada={setOpcaoSelecionada}
           respondida={respondida}
         />
-      ) : (<Algoritmo questao={questao} />)}
+      ) : (<Algoritmo questao={questao} opcaoSelecionada={opcaoSelecionada} setOpcaoSelecionada={setOpcaoSelecionada} respondida={respondida}/>)}
       {opcaoSelecionada !== null &&
         (respondida ? (
           <View style={styles.buttons}>
