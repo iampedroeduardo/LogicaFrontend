@@ -1,7 +1,7 @@
 import { StyleSheet, View, Text, Pressable } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
-import Draggable from "react-draggable";
 import { useEffect, useState } from "react";
+import Draggable from "./Draggable";
 
 export default function Algoritmo({
   questao,
@@ -9,12 +9,19 @@ export default function Algoritmo({
   opcaoSelecionada,
   respondida,
 }) {
+  const [state, setState] = useState({
+    position: { x: 0, y: 0, width: 0, height: 0 },
+  });
+  const [espacoLacunasState, setEspacoLacunasState] = useState({
+    position: { x: 0, y: 0, width: 0, height: 0 },
+  });
   const [opcoesLacuna, setOpcoesLacuna] = useState([]);
   useEffect(() => {
-    if (questao.tipoErroLacuna === "Lacuna") {
+    // Gera as opções apenas quando a questão for do tipo Lacuna e as dimensões do container forem conhecidas
+    if (questao.tipoErroLacuna === "Lacuna" && espacoLacunasState.width > 0) {
       setOpcoesLacuna(gerarOpcoesLacunas());
     }
-  }, [questao]); //muda cada vez que a questão mudar e não toda vez que renderizar
+  }, [questao, espacoLacunasState]); // Re-executa se a questão ou o layout mudarem
 
   function geraAlgoritmo() {
     const pedacos = [];
@@ -110,21 +117,109 @@ export default function Algoritmo({
     return pedacos;
   }
 
-function gerarOpcoesLacunas() {
-  const todasOpcoes = [];
-  questao.lacunas.forEach((lacuna) => {
-    const opcaoCorreta = questao.script.substring(
-      lacuna.posicaoInicial,
-      lacuna.posicaoFinal
+  // Função auxiliar para checar colisão entre duas opções
+  function checkCollision(rect1, rect2, padding = 10) {
+    return (
+      rect1.x < rect2.x + rect2.width + padding &&
+      rect1.x + rect1.width + padding > rect2.x &&
+      rect1.y < rect2.y + rect2.height + padding &&
+      rect1.y + rect1.height + padding > rect2.y
     );
-    todasOpcoes.push({id: lacuna.id, text: opcaoCorreta});
+  }
 
-    lacuna.distratores.forEach((distrator) => {
-      todasOpcoes.push({id: distrator.id, text: distrator.descricao});
-    })
-  })
-  return todasOpcoes.sort(() => Math.random() - 0.5);
-}
+  function gerarOpcoesLacunas() {
+    // Pega as opções do backend e embaralha
+    const opcoesDoBackend = [];
+    questao.lacunas.forEach((lacuna) => {
+      const opcaoCorreta = questao.script.substring(
+        lacuna.posicaoInicial,
+        lacuna.posicaoFinal
+      );
+      opcoesDoBackend.push({ id: lacuna.id, text: opcaoCorreta });
+    });
+    const distratores = [
+      ...questao.lacunas.map((lacuna) => lacuna.distratores)[0],
+    ];
+    while (opcoesDoBackend.length < 4 && distratores.length > 0) {
+      const sorteio = Math.floor(Math.random() * distratores.length);
+      opcoesDoBackend.push({ id: distratores[sorteio].id, text: distratores[sorteio].descricao });
+      distratores.splice(sorteio, 1);
+    }
+    const opcoesEmbaralhadas = opcoesDoBackend.sort(() => Math.random() - 0.5);
+
+    // Lógica de posicionamento
+    const opcoesPosicionadas = [];
+    const containerWidth = espacoLacunasState.width;
+    const containerHeight = espacoLacunasState.height;
+    const margin = 5;
+
+    opcoesEmbaralhadas.forEach((opcao) => {
+      // Calcula a largura da opção com base no texto, com um mínimo e um máximo.
+      const paddingHorizontal = 10; // 10 de cada lado
+      const charWidth = 10; // Largura média de um caractere com fonte monoespaçada
+      const opcaoWidth = Math.max(
+        60,
+        Math.min(200, opcao.text.length * charWidth + paddingHorizontal)
+      );
+      const opcaoHeight = 15; // Altura estimada de uma opção
+      let positionFound = false;
+      let newX = margin,
+        newY = espacoLacunasState.y + margin;
+
+      while (!positionFound) {
+        let hasCollision = false;
+        const newRect = {
+          x: newX,
+          y: newY,
+          width: opcaoWidth,
+          height: opcaoHeight,
+        };
+
+        // Verifica colisão com as opções já posicionadas
+        for (const placedOption of opcoesPosicionadas) {
+          const placedRect = {
+            x: placedOption.x,
+            y: placedOption.y,
+            width: placedOption.width, // Usa a largura calculada para a opção já posicionada
+            height: placedOption.height,
+          };
+          if (checkCollision(newRect, placedRect)) {
+            hasCollision = true;
+            break;
+          }
+        }
+
+        if (!hasCollision) {
+          positionFound = true;
+        } else {
+          // Se colidiu, tenta a próxima posição
+          newX += opcaoWidth + margin;
+          // Se saiu da largura do container, quebra a linha
+          if (newX + opcaoWidth > containerWidth) {
+            newX = margin;
+            newY += opcaoHeight + margin;
+          }
+        }
+      }
+
+      opcoesPosicionadas.push({
+        ...opcao,
+        x: newX,
+        y: newY,
+        width: opcaoWidth, // Salva a largura calculada para uso na verificação de colisão
+        height: opcaoHeight,
+      });
+    });
+
+    return opcoesPosicionadas;
+  }
+  function updateLacuna(updatedLacuna) {
+    setOpcoesLacuna((prevOpcoesLacuna) =>
+      prevOpcoesLacuna.map((w) =>
+        w.id === updatedLacuna.id ? { ...w, ...updatedLacuna } : w
+      )
+    );
+  }
 
   return (
     <LinearGradient
@@ -133,17 +228,36 @@ function gerarOpcoesLacunas() {
       end={{ x: 1, y: 1 }}
       style={styles.borderDiv}
     >
-      <View style={styles.editor}>
+      <View
+        style={styles.editor}
+        onLayout={(event) => {
+          const { x, y, width, height } = event.nativeEvent.layout;
+          setState({ x, y, width, height });
+        }}
+      >
         <Text style={styles.textoContainer}>{geraAlgoritmo()}</Text>
+        {/* Área de referência para as opções, mas não as contém mais */}
+        {questao.tipoErroLacuna === "Lacuna" && (<View
+          style={styles.opcoesLacunaContainer}
+          onLayout={(event) => {
+            const { x, y, width, height } = event.nativeEvent.layout;
+            setEspacoLacunasState({ x, y, width, height });
+          }}
+        />)}
+
+        {/* Container para os itens arrastáveis, posicionado sobre todo o editor */}
         {questao.tipoErroLacuna === "Lacuna" && (
-          <Draggable>
-            <View style={styles.opcoesLacunaContainer}>
+          <View style={StyleSheet.absoluteFill}>
             {opcoesLacuna.map((opcao) => (
-              <Text key={opcao.id} style={styles.opcaoLacuna}>{opcao.text}</Text>
+              <Draggable
+                lacuna={opcao}
+                updateLacuna={updateLacuna}
+                key={opcao.id}
+                width={state.width}
+                height={state.height}
+              />
             ))}
           </View>
-          </Draggable>
-          
         )}
       </View>
     </LinearGradient>
@@ -163,7 +277,6 @@ const styles = StyleSheet.create({
     padding: 12,
   },
   editor: {
-    flex: 1,
     backgroundColor: "white",
     borderRadius: 15,
     padding: 10,
@@ -171,10 +284,13 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.25,
     shadowRadius: 3.84,
+    position: "relative", // Garante que o posicionamento absoluto dos filhos seja relativo a este editor
     elevation: 5,
     display: "flex",
     flexDirection: "column",
     justifyContent: "space-between",
+    height: "100%",
+    width: "100%",
   },
   textoContainer: {
     fontSize: 18,
@@ -224,8 +340,8 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     paddingHorizontal: 2,
     paddingVertical: 2,
-    borderRadius: 10
-  }, 
+    borderRadius: 10,
+  },
   opcaoLacuna: {
     fontSize: 17,
     color: "white",
@@ -236,10 +352,12 @@ const styles = StyleSheet.create({
   opcoesLacunaContainer: {
     flexDirection: "row",
     flexWrap: "wrap",
-    justifyContent: "space-around",
+    justifyContent: "center",
     gap: 10,
     paddingTop: 10,
+    height: 80, // Apenas para manter um espaço no layout
+    borderTopColor: "#bcaef3ff",
     borderTopWidth: 1.6,
-    borderColor: "#b0a8d0ff",
-  }
+    width: "100%",
+  },
 });
