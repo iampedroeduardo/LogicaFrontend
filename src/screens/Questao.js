@@ -56,7 +56,9 @@ export default function Questao({ navigation, route }) {
                 tipoErroLacuna: questao.tipoErroLacuna,
                 acertou: questao.tipoErroLacuna === "Erro" ? (opcaoSelecionada.id === questao.espacoErrado.id) : false,
                 espacoErrado: questao.tipoErroLacuna === "Erro" ? questao.espacoErrado : null,
-                lacunas: questao.tipoErroLacuna === "Lacuna" ? questao.lacunas : null
+                lacunas: questao.tipoErroLacuna === "Lacuna" ? questao.lacunas : null,
+                nivel: questao.nivel,
+                rankId: questao.rankId,
               }
             : null,
         },
