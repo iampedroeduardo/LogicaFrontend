@@ -12,11 +12,11 @@ import {
 } from "react-native";
 import { Dialog, Icon, Portal } from "react-native-paper";
 import instance from "../axios";
+import Algoritmo from "../components/Algoritmo";
 import Button from "../components/Button";
 import DescricaoQuestao from "../components/DescricaoQuestao";
 import Logo from "../components/Logo";
 import Opcoes from "../components/Opcoes";
-import Algoritmo from "../components/Algoritmo";
 
 export default function Questao({ navigation, route }) {
   const { usuario } = route.params;
@@ -32,7 +32,7 @@ export default function Questao({ navigation, route }) {
   const [subiuXp, setSubiuXp] = useState(false);
   const [desceuXp, setDesceuXp] = useState(false);
   const [naoTemQuestao, setNaoTemQuestao] = useState(false);
-
+  const [espacos, setEspacos] = useState([]);
   const [mensagem, setMensagem] = useState("");
   const [loading, setLoading] = useState(true);
   async function trilha(isPrimeiraQuestao, isUltimaQuestao) {
@@ -43,23 +43,34 @@ export default function Questao({ navigation, route }) {
           isPrimeiraQuestao,
           isUltimaQuestao,
           questao: !isPrimeiraQuestao
-            ? questao.tipo === "multiplaEscolha" ?{
-                id: questao.id,
-                opcao: questao.opcoes[opcaoSelecionada],
-                rankId: questao.rankId,
-                nivel: questao.nivel,
-                tipo: questao.tipo,
-                opcaoCerta: questao.opcoes[questao.opcaoCerta],
-              } : {
-                id: questao.id,
-                tipo: questao.tipo,
-                tipoErroLacuna: questao.tipoErroLacuna,
-                acertou: questao.tipoErroLacuna === "Erro" ? (opcaoSelecionada.id === questao.espacoErrado.id) : false,
-                espacoErrado: questao.tipoErroLacuna === "Erro" ? questao.espacoErrado : null,
-                lacunas: questao.tipoErroLacuna === "Lacuna" ? questao.lacunas : null,
-                nivel: questao.nivel,
-                rankId: questao.rankId,
-              }
+            ? questao.tipo === "multiplaEscolha"
+              ? {
+                  id: questao.id,
+                  opcao: questao.opcoes[opcaoSelecionada],
+                  rankId: questao.rankId,
+                  nivel: questao.nivel,
+                  tipo: questao.tipo,
+                  opcaoCerta: questao.opcoes[questao.opcaoCerta],
+                }
+              : {
+                  id: questao.id,
+                  tipo: questao.tipo,
+                  tipoErroLacuna: questao.tipoErroLacuna,
+                  acertou:
+                    questao.tipoErroLacuna === "Erro"
+                      ? opcaoSelecionada.id === questao.espacoErrado.id
+                      : false,
+                  espacoErrado:
+                    questao.tipoErroLacuna === "Erro"
+                      ? questao.espacoErrado
+                      : null,
+                  lacunas:
+                    questao.tipoErroLacuna === "Lacuna"
+                      ? questao.lacunas
+                      : null,
+                  nivel: questao.nivel,
+                  rankId: questao.rankId,
+                }
             : null,
         },
         {
@@ -72,7 +83,8 @@ export default function Questao({ navigation, route }) {
         if (response.data === null) {
           setNaoTemQuestao(true);
           if (!isPrimeiraQuestao) {
-            const [subiuRank, subiuNivel, subiuXp, desceuXp, diferencaXp] = await atualizarDados(true);
+            const [subiuRank, subiuNivel, subiuXp, desceuXp, diferencaXp] =
+              await atualizarDados(true);
             setMensagem(
               (subiuRank
                 ? "Parabéns! Você subiu de Rank! 🎉"
@@ -140,7 +152,13 @@ export default function Questao({ navigation, route }) {
       if (mudouRank || mudouNivel || ganhouXp || perdeuXp) {
         setUsuarioAtual(response.data);
         if (semQuestoes) {
-          return [mudouRank, mudouNivel, ganhouXp, perdeuXp, response.data.xp - usuario.xp];
+          return [
+            mudouRank,
+            mudouNivel,
+            ganhouXp,
+            perdeuXp,
+            response.data.xp - usuario.xp,
+          ];
         }
         setDialogVisible(true);
       } else {
@@ -221,16 +239,31 @@ export default function Questao({ navigation, route }) {
           setOpcaoSelecionada={setOpcaoSelecionada}
           respondida={respondida}
         />
-      ) : (<Algoritmo questao={questao} opcaoSelecionada={opcaoSelecionada} setOpcaoSelecionada={setOpcaoSelecionada} respondida={respondida}/>)}
-      {opcaoSelecionada !== null &&
+      ) : (
+        <Algoritmo
+          questao={questao}
+          opcaoSelecionada={opcaoSelecionada}
+          setOpcaoSelecionada={setOpcaoSelecionada}
+          respondida={respondida}
+          setEspacos={setEspacos}
+          espacos={espacos}
+        />
+      )}
+      {(opcaoSelecionada !== null ||
+        (espacos.filter((x) => x.chute === null).length === 0 &&
+          questao.tipoErroLacuna === "Lacuna")) &&
         (respondida ? (
           <View style={styles.buttons}>
-            <Button
-              texto={modo === "gabarito" ? "Questão" : "Gabarito"}
-              onPress={() => {
-                setModo(modo === "gabarito" ? "questao" : "gabarito");
-              }}
-            />
+            {(questao.tipo === "multiplaEscolha" || // Para múltipla escolha, sempre mostra
+              (questao.tipoErroLacuna === "Lacuna" &&
+                espacos.some((x) => x.chute.id !== x.id))) && ( // Para lacuna, sempre mostra
+              <Button
+                texto={modo === "gabarito" ? "Questão" : "Gabarito"}
+                onPress={() => {
+                  setModo(modo === "gabarito" ? "questao" : "gabarito");
+                }}
+              />
+            )}
             <Button
               texto="Próxima"
               onPress={() => {

@@ -1,6 +1,6 @@
-import { StyleSheet, View, Text, Pressable } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { Pressable, StyleSheet, Text, View } from "react-native";
 import Draggable from "./Draggable";
 
 export default function Algoritmo({
@@ -8,6 +8,8 @@ export default function Algoritmo({
   setOpcaoSelecionada,
   opcaoSelecionada,
   respondida,
+  setEspacos,
+  espacos,
 }) {
   const [state, setState] = useState({
     position: { x: 0, y: 0, width: 0, height: 0 },
@@ -15,7 +17,14 @@ export default function Algoritmo({
   const [espacoLacunasState, setEspacoLacunasState] = useState({
     position: { x: 0, y: 0, width: 0, height: 0 },
   });
+  
   const [opcoesLacuna, setOpcoesLacuna] = useState([]);
+
+  // Ref para o container principal do editor
+  const editorRef = useRef(null);
+  // Ref para coletar as medições de layout antes de atualizar o estado
+  const layoutDataRef = useRef(new Map());
+
   useEffect(() => {
     // Gera as opções apenas quando a questão for do tipo Lacuna e as dimensões do container forem conhecidas
     if (questao.tipoErroLacuna === "Lacuna" && espacoLacunasState.width > 0) {
@@ -23,25 +32,40 @@ export default function Algoritmo({
     }
   }, [questao, espacoLacunasState]); // Re-executa se a questão ou o layout mudarem
 
-  function geraAlgoritmo() {
-    const pedacos = [];
-    let espacos = [];
-    if (questao.tipoErroLacuna === "Erro") {
-      espacos = [...questao.espacosCertos, questao.espacoErrado].sort(
-        (a, b) => a.posicaoInicial - b.posicaoInicial
-      );
-    } else if (questao.tipoErroLacuna === "Lacuna") {
-      espacos = [...questao.lacunas].sort(
-        (a, b) => a.posicaoInicial - b.posicaoInicial
-      );
+  const algoritmoParts = useMemo(() => {
+    const linhas = [];
+
+    let pedacos = [];
+    if (espacos.length === 0) {
+      return <Text style={styles.texto}>{questao.script}</Text>;
     }
 
-    // Primeiro pedaço antes do primeiro espaço
-    pedacos.push(
-      <Text key="inicio" style={styles.texto}>
-        {questao.script.substring(0, espacos[0].posicaoInicial)}
-      </Text>
-    );
+    if (
+      questao.script.substring(0, espacos[0].posicaoInicial).indexOf("\n") !==
+      -1
+    ) {
+      const lines = questao.script
+        .substring(0, espacos[0].posicaoInicial)
+        .split("\n");
+      for (let i = 0; i < lines.length; i++) {
+        const line = lines[i];
+        pedacos.push(
+          <Text key={`inicio-${i}`} style={styles.texto}>
+            {line}
+          </Text>
+        );
+        if (i < lines.length - 1) {
+          linhas.push(pedacos);
+          pedacos = [];
+        }
+      }
+    } else {
+      pedacos.push(
+        <Text key="inicio" style={styles.texto}>
+          {questao.script.substring(0, espacos[0].posicaoInicial)}
+        </Text>
+      );
+    }
 
     for (let i = 0; i < espacos.length; i++) {
       const espaco = espacos[i];
@@ -51,26 +75,24 @@ export default function Algoritmo({
         questao.tipoErroLacuna === "Erro" ? (
           <Pressable
             key={`espaco-${i}`}
-            style={styles.texto}
-            onPress={() => setOpcaoSelecionada(espaco)}
+            onPress={() => {
+              if (!respondida) setOpcaoSelecionada(espaco);
+            }}
           >
             <Text
               style={[
                 styles.texto,
-                opcaoSelecionada != null &&
-                !respondida &&
-                opcaoSelecionada.id === espaco.id
-                  ? styles.highlightSelect
-                  : opcaoSelecionada != null &&
-                    respondida &&
-                    opcaoSelecionada.id === espaco.id &&
-                    opcaoSelecionada.id === questao.espacoErrado.id
+                respondida && espaco.id === questao.espacoErrado.id // Se respondida e este é o erro correto
                   ? styles.highlightRight
-                  : opcaoSelecionada != null &&
-                    respondida &&
-                    opcaoSelecionada.id === espaco.id &&
-                    opcaoSelecionada.id !== questao.espacoErrado.id
-                  ? styles.highlightWrong
+                  : opcaoSelecionada != null && // Se há uma opção selecionada...
+                    !respondida && // ...e ainda não foi respondida...
+                    opcaoSelecionada.id === espaco.id // ...e é a opção atual
+                  ? styles.highlightSelect // -> Estilo de seleção
+                  : opcaoSelecionada != null && // Se há uma opção selecionada...
+                    respondida && // ...e já foi respondida...
+                    opcaoSelecionada.id === espaco.id && // ...e é a opção atual...
+                    opcaoSelecionada.id !== questao.espacoErrado.id // ...mas não é o erro correto
+                  ? styles.highlightWrong // -> Estilo de erro (selecionado, mas errado)
                   : styles.highlight,
               ]}
             >
@@ -83,39 +105,138 @@ export default function Algoritmo({
             </Text>
           </Pressable>
         ) : (
-          <Pressable key={`espaco-${i}`} style={styles.lacunaVazia}>
-            <Text style={{ color: "transparent" }}>
-              {questao.script.substring(
-                espaco.posicaoInicial,
-                espaco.posicaoFinal
-              )}
-            </Text>
+          <Pressable
+            key={`espaco-${espaco.id}`}
+            style={
+              !espaco.chute
+                ? styles.lacunaVazia
+                : !respondida
+                ? styles.highlightSelect
+                : espaco.chute.id === espaco.id
+                ? styles.highlightRight
+                : styles.highlightWrong
+            }
+            onPress={() => {
+              if (espaco.chute && !respondida) {
+                updateLacuna({ ...espaco.chute, visible: true });
+                updateEspaco({ ...espaco, chute: null });
+              }
+            }}
+            onLayout={(event) => {
+              // Mede a posição da lacuna em relação ao container 'editor'
+              event.target.measureLayout(
+                editorRef.current,
+                (x, y, width, height) => {
+                  // Armazena os dados de layout na ref
+                  layoutDataRef.current.set(espaco.id, { x, y, width, height });
+
+                  // Verifica se já coletamos o layout de todas as lacunas
+                  if (layoutDataRef.current.size === espacos.length) {
+                    setEspacos((prevEspacos) =>
+                      prevEspacos.map((e) => ({
+                        ...e,
+                        ...(layoutDataRef.current.get(e.id) || {}),
+                      }))
+                    );
+                  }
+                },
+                () => {} // Função de erro (onFail)
+              );
+            }}
+          >
+            {espaco.chute && <Text style={styles.lacunaTexto}>{espaco.chute.text}</Text>}
           </Pressable>
         )
       );
 
-      // Texto entre este e o próximo espaço
       if (i < espacos.length - 1) {
-        pedacos.push(
-          <Text key={`meio-${i}`} style={styles.texto}>
-            {questao.script.substring(
-              espaco.posicaoFinal,
-              espacos[i + 1].posicaoInicial
-            )}
-          </Text>
-        );
+        if (
+          questao.script
+            .substring(espaco.posicaoFinal, espacos[i + 1].posicaoInicial)
+            .indexOf("\n") !== -1
+        ) {
+          const lines = questao.script
+            .substring(espaco.posicaoFinal, espacos[i + 1].posicaoInicial)
+            .split("\n");
+          for (let j = 0; j < lines.length; j++) {
+            const line = lines[j];
+            pedacos.push(
+              <Text key={`meio-${i}-${j}`} style={styles.texto}>
+                {line}
+              </Text>
+            );
+            if (j < lines.length - 1) {
+              linhas.push(pedacos);
+              pedacos = [];
+            }
+          }
+        } else {
+          pedacos.push(
+            <Text key={`meio-${i}`} style={styles.texto}>
+              {questao.script.substring(
+                espaco.posicaoFinal,
+                espacos[i + 1].posicaoInicial
+              )}
+            </Text>
+          );
+        }
       }
     }
 
     // Último pedaço
-    pedacos.push(
-      <Text key="fim" style={styles.texto}>
-        {questao.script.substring(espacos[espacos.length - 1].posicaoFinal)}
-      </Text>
-    );
+    if (
+      questao.script
+        .substring(espacos[espacos.length - 1].posicaoFinal)
+        .indexOf("\n") !== -1
+    ) {
+      const lines = questao.script
+        .substring(espacos[espacos.length - 1].posicaoFinal)
+        .split("\n");
+      for (let i = 0; i < lines.length; i++) {
+        const line = lines[i];
+        pedacos.push(
+          <Text key={`fim-${i}`} style={styles.texto}>
+            {line}
+          </Text>
+        );
+        linhas.push(pedacos);
+        pedacos = [];
+      }
+    } else {
+      pedacos.push(
+        <Text key="fim" style={styles.texto}>
+          {questao.script.substring(espacos[espacos.length - 1].posicaoFinal)}
+        </Text>
+      );
+      linhas.push(pedacos);
+      pedacos = [];
+    }
+    return linhas.map((linha, index) => (
+      <View key={`linha-${index}`} style={styles.linha}>
+        {linha}
+      </View>
+    ));
+  }, [questao, opcaoSelecionada, respondida, espacos]); // Adicionado `espacos` às dependências
 
-    return pedacos;
-  }
+  useEffect(() => {
+    let newEspacos = [];
+    if (questao.tipoErroLacuna === "Lacuna") {
+      newEspacos = [...questao.lacunas].sort(
+        (a, b) => a.posicaoInicial - b.posicaoInicial
+      );
+      newEspacos.forEach((lacuna) => {
+        lacuna.chute = null;
+      });
+    } else if (questao.tipoErroLacuna === "Erro") {
+      // Popula espacos também para questões do tipo "Erro"
+      newEspacos = [...questao.espacosCertos, questao.espacoErrado].sort(
+        (a, b) => a.posicaoInicial - b.posicaoInicial
+      );
+    }
+    // Limpa os dados de layout antigos ao carregar uma nova questão
+    layoutDataRef.current.clear();
+    setEspacos(newEspacos);
+  }, [questao]); // A dependência `questao` está correta
 
   // Função auxiliar para checar colisão entre duas opções
   function checkCollision(rect1, rect2, padding = 10) {
@@ -142,7 +263,10 @@ export default function Algoritmo({
     ];
     while (opcoesDoBackend.length < 4 && distratores.length > 0) {
       const sorteio = Math.floor(Math.random() * distratores.length);
-      opcoesDoBackend.push({ id: distratores[sorteio].id, text: distratores[sorteio].descricao });
+      opcoesDoBackend.push({
+        id: distratores[sorteio].id,
+        text: distratores[sorteio].descricao,
+      });
       distratores.splice(sorteio, 1);
     }
     const opcoesEmbaralhadas = opcoesDoBackend.sort(() => Math.random() - 0.5);
@@ -208,6 +332,7 @@ export default function Algoritmo({
         y: newY,
         width: opcaoWidth, // Salva a largura calculada para uso na verificação de colisão
         height: opcaoHeight,
+        visible: true,
       });
     });
 
@@ -217,6 +342,13 @@ export default function Algoritmo({
     setOpcoesLacuna((prevOpcoesLacuna) =>
       prevOpcoesLacuna.map((w) =>
         w.id === updatedLacuna.id ? { ...w, ...updatedLacuna } : w
+      )
+    );
+  }
+  function updateEspaco(updatedEspaco) {
+    setEspacos((prevEspacos) =>
+      prevEspacos.map((w) =>
+        w.id === updatedEspaco.id ? { ...w, ...updatedEspaco } : w
       )
     );
   }
@@ -230,20 +362,23 @@ export default function Algoritmo({
     >
       <View
         style={styles.editor}
+        ref={editorRef} // Atribui a ref ao container do editor
         onLayout={(event) => {
           const { x, y, width, height } = event.nativeEvent.layout;
           setState({ x, y, width, height });
         }}
       >
-        <Text style={styles.textoContainer}>{geraAlgoritmo()}</Text>
+        <View style={styles.textoContainer}>{algoritmoParts}</View>
         {/* Área de referência para as opções, mas não as contém mais */}
-        {questao.tipoErroLacuna === "Lacuna" && (<View
-          style={styles.opcoesLacunaContainer}
-          onLayout={(event) => {
-            const { x, y, width, height } = event.nativeEvent.layout;
-            setEspacoLacunasState({ x, y, width, height });
-          }}
-        />)}
+        {questao.tipoErroLacuna === "Lacuna" && (
+          <View
+            style={styles.opcoesLacunaContainer}
+            onLayout={(event) => {
+              const { x, y, width, height } = event.nativeEvent.layout;
+              setEspacoLacunasState({ x, y, width, height });
+            }}
+          />
+        )}
 
         {/* Container para os itens arrastáveis, posicionado sobre todo o editor */}
         {questao.tipoErroLacuna === "Lacuna" && (
@@ -255,6 +390,8 @@ export default function Algoritmo({
                 key={opcao.id}
                 width={state.width}
                 height={state.height}
+                espacos={espacos}
+                updateEspaco={updateEspaco}
               />
             ))}
           </View>
@@ -293,11 +430,13 @@ const styles = StyleSheet.create({
     width: "100%",
   },
   textoContainer: {
-    fontSize: 18,
-    color: "#000",
-    fontFamily: "monospace", // para parecer código
-    lineHeight: 22,
-    flex: 1,
+    width: "100%",
+    display: "flex",
+    flexDirection: "column",
+  },
+  linha: {
+    display: "flex",
+    flexDirection: "row",
   },
   texto: {
     fontSize: 18,
@@ -317,6 +456,10 @@ const styles = StyleSheet.create({
     color: "white",
     backgroundColor: "#6446DB",
     borderRadius: 10,
+    height: 30,
+    justifyContent: "center",
+    alignItems: "center",
+    paddingHorizontal: 5,
   },
   highlightWrong: {
     borderWidth: 2,
@@ -324,6 +467,10 @@ const styles = StyleSheet.create({
     color: "white",
     backgroundColor: "#f06161ff",
     borderRadius: 10,
+    height: 30,
+    justifyContent: "center",
+    alignItems: "center",
+    paddingHorizontal: 5,
   },
   highlightRight: {
     borderWidth: 2,
@@ -331,6 +478,10 @@ const styles = StyleSheet.create({
     color: "white",
     backgroundColor: "#8def72ff",
     borderRadius: 10,
+    height: 30,
+    justifyContent: "center",
+    alignItems: "center",
+    paddingHorizontal: 5,
   },
   lacunaVazia: {
     borderWidth: 2,
@@ -341,6 +492,13 @@ const styles = StyleSheet.create({
     paddingHorizontal: 2,
     paddingVertical: 2,
     borderRadius: 10,
+    width: 50,
+    height: 30,
+  },
+  lacunaTexto: {
+    color: "white",
+    fontSize: 18,
+    fontFamily: "monospace",
   },
   opcaoLacuna: {
     fontSize: 17,
