@@ -57,9 +57,9 @@ export default function Questao({ navigation, route }) {
                   tipo: questao.tipo,
                   tipoErroLacuna: questao.tipoErroLacuna,
                   acertou:
-                    questao.tipoErroLacuna === "Erro"
+                    questao.tipoErroLacuna === "Erro" 
                       ? opcaoSelecionada.id === questao.espacoErrado.id
-                      : false,
+                      : espacos.every((lacuna) => lacuna.chute && lacuna.chute.id === lacuna.id),
                   espacoErrado:
                     questao.tipoErroLacuna === "Erro"
                       ? questao.espacoErrado
