@@ -5,6 +5,7 @@ import { ActivityIndicator, StyleSheet, Text, View } from "react-native";
 import { BottomNavigation, useTheme } from "react-native-paper";
 import Inicio from "./Inicio";
 import Perfil from "./Perfil";
+import Ranking from "./Ranking";
 
 export default function Home({ navigation }) {
   const [index, setIndex] = useState(0);
@@ -51,7 +52,7 @@ export default function Home({ navigation }) {
 
   const renderScene = BottomNavigation.SceneMap({
     inicio: () => <Inicio navigation={navigation} usuario={usuario} />,
-    ranking: () => <Text>Ranking</Text>, // Componente de Ranking aqui
+    ranking: () => <Ranking navigation={navigation} usuario={usuario} />,
     perfil: () => <Perfil navigation={navigation} usuario={usuario} />,
   });
 
