@@ -72,18 +72,21 @@ export default function Draggable({
           }
 
           if (espacoEncontrado) {
+            //salva o chute
+            updateEspaco({ ...espacoEncontrado, chute: lacuna });
+            // esconde
             updateLacuna({
               ...lacuna,
               x: startPosition.x,
               y: startPosition.y,
               visible: false,
             });
+          } else { //volta pra opsição inicial 
+            Animated.spring(pan, {
+              toValue: { x: startPosition.x, y: startPosition.y },
+              useNativeDriver: false,
+            }).start();
           }
-          Animated.spring(pan, {
-            toValue: { x: startPosition.x, y: startPosition.y },
-            useNativeDriver: false,
-          }).start();
-          updateEspaco({ ...espacoEncontrado, chute: lacuna });
         },
       }),
     [lacuna, width, height, espacos]
