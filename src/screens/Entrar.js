@@ -18,7 +18,7 @@ export default function Entrar({navigation}) {
         if(CampoPreenchido()) {
             instance.post("/entrar", {
             usuario: usuario.trim(),
-            senha: senha.trim(),
+            senha: senha,
         }).then(async (response)=>{
             await AsyncStorage.setItem('usuario', JSON.stringify(response.data));
             if(Platform.OS === 'web'){

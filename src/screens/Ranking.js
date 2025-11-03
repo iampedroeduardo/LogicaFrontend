@@ -15,9 +15,11 @@ export default function Ranking({ navigation, usuario }) {
   const [ranking, setRanking] = useState([]);
   const [loadingTop, setLoadingTop] = useState(true);
   const [loadingBottom, setLoadingBottom] = useState(true);
+  const [hasMoreTop, setHasMoreTop] = useState(true);
+  const [hasMoreBottom, setHasMoreBottom] = useState(true);
   async function loadInicial() {
     try {
-      const response = await instance.get(`/ranking/${usuario.id}/5/5`, {
+      const response = await instance.get(`/ranking/${usuario.id}/8/9`, {
         headers: {
           Authorization: `Bearer ${usuario.token}`,
         },
@@ -30,7 +32,7 @@ export default function Ranking({ navigation, usuario }) {
     }
   }
   async function loadTop() {
-    if (loadingTop) {
+    if (loadingTop || !hasMoreTop) {
       return;
     }
     setLoadingTop(true);
@@ -41,13 +43,14 @@ export default function Ranking({ navigation, usuario }) {
         },
       });
       setRanking((prev) => [...response.data, ...prev]);
+      setHasMoreTop(response.data.length === 5);
       setLoadingTop(false);
     } catch (error) {
       console.log(error);
     }
   }
   async function loadBottom() {
-    if (loadingBottom) {
+    if (loadingBottom || !hasMoreBottom) {
       return;
     }
     setLoadingBottom(true);
@@ -61,6 +64,7 @@ export default function Ranking({ navigation, usuario }) {
         }
       );
       setRanking((prev) => [...prev, ...response.data]);
+      setHasMoreBottom(response.data.length === 5);
       setLoadingBottom(false);
     } catch (error) {
       console.log(error);
@@ -72,7 +76,7 @@ export default function Ranking({ navigation, usuario }) {
   return (
     <View style={styles.container}>
       <Logo />
-      <View>
+      <View style={{ flex: 1 }}>
         <LinearGradient
           style={styles.caminho}
           colors={["#BFECFF", "#6446DB"]}
@@ -157,14 +161,8 @@ export default function Ranking({ navigation, usuario }) {
           )}
           onEndReached={loadBottom}
           onEndReachedThreshold={0.3}
-          onScroll={({ nativeEvent }) => {
-            if (nativeEvent.contentOffset.y <= 0 && !loadingTop) {
-              loadTop();
-            }
-          }}
-          ListHeaderComponent={
-            loadingTop ? <ActivityIndicator style={{ margin: 8 }} /> : null
-          }
+          onRefresh={loadTop}
+          refreshing={loadingTop}
           ListFooterComponent={
             loadingBottom ? <ActivityIndicator style={{ margin: 8 }} /> : null
           }

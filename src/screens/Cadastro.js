@@ -29,7 +29,7 @@ export default function Cadastro({ navigation }) {
           genero,
           dataNascimento,
           email: email.trim(),
-          senha: senha.trim(),
+          senha: senha,
         })
         .then(async (response) => {
           await AsyncStorage.setItem("usuario", JSON.stringify(response.data));
@@ -98,7 +98,7 @@ export default function Cadastro({ navigation }) {
       senha.match(/[A-Z]/g) == null ||
       senha.match(/[a-z]/g) == null ||
       senha.match(/[\W|_]/g) == null ||
-      senha.trim().length < 8
+      senha.length < 8
     );
   };
 
