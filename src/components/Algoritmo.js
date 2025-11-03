@@ -196,7 +196,7 @@ export default function Algoritmo({
         const line = lines[i];
         pedacos.push(
           <Text key={`fim-${i}`} style={styles.texto}>
-            {line}
+            {line + (i < lines.length - 1 ? '\n' : '')}
           </Text>
         );
         linhas.push(pedacos);
@@ -211,7 +211,7 @@ export default function Algoritmo({
       linhas.push(pedacos);
       pedacos = [];
     }
-    return linhas.map((linha, index) => (
+    return linhas.flat().map((linha, index) => (
       <View key={`linha-${index}`} style={styles.linha}>
         {linha}
       </View>
