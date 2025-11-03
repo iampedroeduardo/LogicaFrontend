@@ -262,7 +262,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     paddingTop: 50,
-    paddingHorizontal: 20,
+    paddingHorizontal: 15,
     backgroundColor: "#EEEEEE",
   },
   caminhobutton: {
