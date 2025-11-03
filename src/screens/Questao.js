@@ -19,7 +19,7 @@ import Logo from "../components/Logo";
 import Opcoes from "../components/Opcoes";
 
 export default function Questao({ navigation, route }) {
-  const { usuario } = route.params;
+  const { usuario, categoria } = route.params;
   const [usuarioAtual, setUsuarioAtual] = useState(usuario);
   const animatedXp = useRef(new Animated.Value(usuarioAtual.xp)).current;
   const [modo, setModo] = useState("questao");
@@ -42,6 +42,7 @@ export default function Questao({ navigation, route }) {
         {
           isPrimeiraQuestao,
           isUltimaQuestao,
+          categoria,
           questao: !isPrimeiraQuestao
             ? questao.tipo === "multiplaEscolha"
               ? {
@@ -258,6 +259,7 @@ export default function Questao({ navigation, route }) {
               (questao.tipoErroLacuna === "Lacuna" &&
                 espacos.some((x) => x.chute.id !== x.id))) && ( // Para lacuna, sempre mostra
               <Button
+                key="gabarito-btn"
                 texto={modo === "gabarito" ? "Questão" : "Gabarito"}
                 onPress={() => {
                   setModo(modo === "gabarito" ? "questao" : "gabarito");
@@ -265,6 +267,7 @@ export default function Questao({ navigation, route }) {
               />
             )}
             <Button
+              key="proxima-btn"
               texto="Próxima"
               onPress={() => {
                 trilha(false, false);

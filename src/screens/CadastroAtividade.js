@@ -238,7 +238,7 @@ export default function CadastroAtividade({ navigation }) {
       y: newY,
       closed: false,
       salvar: false,
-      rankId: question ? question.rankId : null,
+      rankId: question ? question.rankId : null, // Inicia com null para novas questões
       nivel: question && type === "multiplaEscolha" ? question.nivel : 0,
       categoria:
         question && question.categoria && question.categoria.length > 0
@@ -249,7 +249,7 @@ export default function CadastroAtividade({ navigation }) {
           ? "Programacao"
           : question && type === "multiplaEscolha"
           ? question.tipo
-          : "",
+          : type === "multiplaEscolha" ? "RaciocinioLogico" : "",
       status: question ? question.status : "",
       novo: !question
     };

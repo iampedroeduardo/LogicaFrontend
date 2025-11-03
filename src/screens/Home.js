@@ -22,7 +22,6 @@ export default function Home({ navigation }) {
   useFocusEffect(
     React.useCallback(() => {
       const buscarUsuario = async () => {
-        setLoading(true);
         try {
           const usuarioJSON = await AsyncStorage.getItem("usuario");
           if (usuarioJSON) {
@@ -30,8 +29,6 @@ export default function Home({ navigation }) {
           }
         } catch (error) {
           console.error("Falha ao buscar usuário do storage", error);
-        } finally {
-          setLoading(false);
         }
       };
       async function deslogar() {
@@ -39,6 +36,7 @@ export default function Home({ navigation }) {
         navigation.navigate("PaginaInicial");
       }
       buscarUsuario();
+      setLoading(false);
     }, [])
   );
 

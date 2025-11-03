@@ -101,11 +101,31 @@ export default function Window({
     { label: "Raciocínio Lógico", value: "RaciocinioLogico" },
     { label: "Programação", value: "Programacao" },
   ]);
-  const [openCategoria, setOpenCategoria] = useState(false);
   const [categoria, setCategoria] = useState(window.categoria);
-  const [categorias, setCategorias] = useState([
-    { label: "Laços de Repetição", value: "Repeticao" },
+  const [openCategoria, setOpenCategoria] = useState(false);
+  const [categoriasProg, setCategoriasProg] = useState([
+    { label: "Variáveis", value: "Variaveis" },
+    { label: "Condicionais", value: "Condicionais" },
+    { label: "Operadores", value: "Operadores" },
+    { label: "Laços de Repetição", value: "LacosDeRepeticao" },
+    { label: "Strings", value: "Strings" },
+    { label: "Vetores", value: "Vetores" },
+    { label: "Funções", value: "Funcoes" },
+    { label: "Avançado", value: "Avancado" },
   ]);
+  const [categoriasRac, setCategoriasRac] = useState([
+    { label: "Proposições", value: "proposicoes" },
+    { label: "Conectivos Lógicos", value: "conectivosLogicos" },
+    { label: "Tabelas Verdade", value: "tabelasVerdade" },
+    { label: "Equivalências Lógicas", value: "equivalenciasLogicas" },
+    { label: "Diagramas de Venn", value: "diagramasVenn" },
+    { label: "Argumentos Válidos", value: "argumentosValidos" },
+    { label: "Sequências Lógicas", value: "sequenciasLogicas" },
+    { label: "Padrões Numéricos", value: "padroesNumericos" },
+    { label: "Análise Combinatória", value: "analiseCombinatoria" },
+    { label: "Probabilidade", value: "probabilidade" },
+  ]);
+
   const [startSelection, setStartSelection] = useState(0);
   const [endSelection, setEndSelection] = useState(0);
   const [openedError, setOpenedError] = useState(0);
@@ -727,19 +747,24 @@ export default function Window({
                     <DropDownPicker
                       zIndex={5000}
                       style={styles.picker}
-                      items={categorias}
+                      items={
+                        window.type === "codigo"
+                          ? categoriasProg
+                          : categoriasRac
+                      }
                       value={categoria}
                       open={openCategoria}
-                      setItems={setCategorias}
                       setOpen={setOpenCategoria}
                       setValue={setCategoria}
                       onOpen={() => {
                         setOpenRank(false);
                       }}
                       onSelectItem={(item) => {
+                        const rankSelecionado = ranks.find(r => r.categoria === item.value);
                         updateWindow({
-                          ...window,
+                          ...window, // Mantém as propriedades existentes da janela
                           categoria: item.value,
+                          rankId: rankSelecionado ? rankSelecionado.id : null,
                         });
                       }}
                       placeholder="Selecione uma categoria..."
@@ -783,69 +808,6 @@ export default function Window({
                         tintColor: "#6200ee",
                       }}
                     />
-                    {usuario.adm && (
-                      <View>
-                        <Text>Rank:</Text>
-                        <DropDownPicker
-                          zIndex={4000}
-                          style={styles.picker}
-                          items={rankItens}
-                          value={rank}
-                          open={openRank}
-                          setItems={setRankItens}
-                          setOpen={setOpenRank}
-                          setValue={setRank}
-                          onOpen={() => {
-                            setOpenTipo(false);
-                            setOpenNivel(false);
-                          }}
-                          onChangeValue={(value) => {
-                            updateWindow({ ...window, rankId: value });
-                          }}
-                          placeholder="Selecione um rank..."
-                          listMode="SCROLLVIEW"
-                          dropDownContainerStyle={{
-                            zIndex: 4000,
-                            backgroundColor: "white",
-                            borderWidth: 0,
-                            borderRadius: 20,
-                            width: 210,
-                            maxHeight: 140,
-                            shadowColor: "#000",
-                            shadowOffset: {
-                              width: 0,
-                              height: 2,
-                            },
-                            shadowOpacity: 0.25,
-                            shadowRadius: 3.84,
-                            elevation: 5,
-                          }}
-                          // Estilo de cada item da lista
-                          listItemContainerStyle={{
-                            backgroundColor: "white",
-                            borderWidth: 0,
-                            height: 45,
-                          }}
-                          // Estilo do texto de cada item
-                          listItemLabelStyle={{
-                            color: "#333",
-                            fontSize: 14,
-                          }}
-                          selectedItemLabelStyle={{
-                            color: "#6200ee",
-                            fontWeight: "bold",
-                          }}
-                          // Estilo do placeholder
-                          placeholderStyle={{
-                            color: "grey",
-                          }}
-                          // Estilo da seta
-                          arrowIconStyle={{
-                            tintColor: "#6200ee",
-                          }}
-                        />
-                      </View>
-                    )}
                   </View>
                 </View>
               )}
@@ -1342,19 +1304,24 @@ export default function Window({
                     <DropDownPicker
                       zIndex={5000}
                       style={styles.picker}
-                      items={categorias}
+                      items={
+                        tipo === "Programacao"
+                          ? categoriasProg
+                          : categoriasRac
+                      }
                       value={categoria}
                       open={openCategoria}
-                      setItems={setCategorias}
                       setOpen={setOpenCategoria}
                       setValue={setCategoria}
                       onOpen={() => {
                         setOpenRank(false);
                       }}
                       onSelectItem={(item) => {
+                        const rankSelecionado = ranks.find(r => r.categoria === item.value);
                         updateWindow({
                           ...window,
                           categoria: item.value,
+                          rankId: rankSelecionado ? rankSelecionado.id : null,
                         });
                       }}
                       placeholder="Selecione uma categoria..."
@@ -1468,66 +1435,7 @@ export default function Window({
                           arrowIconStyle={{
                             tintColor: "#6200ee",
                           }}
-                        />
-                        <Text>Rank:</Text>
-                        <DropDownPicker
-                          zIndex={4000}
-                          style={styles.picker}
-                          items={rankItens}
-                          value={rank}
-                          open={openRank}
-                          setItems={setRankItens}
-                          setOpen={setOpenRank}
-                          setValue={setRank}
-                          onOpen={() => {
-                            setOpenTipo(false);
-                            setOpenNivel(false);
-                          }}
-                          onChangeValue={(value) => {
-                            updateWindow({ ...window, rankId: value });
-                          }}
-                          placeholder="Selecione um rank..."
-                          listMode="SCROLLVIEW"
-                          dropDownContainerStyle={{
-                            zIndex: 4000,
-                            backgroundColor: "white",
-                            borderWidth: 0,
-                            borderRadius: 20,
-                            width: 210,
-                            maxHeight: 140,
-                            shadowColor: "#000",
-                            shadowOffset: {
-                              width: 0,
-                              height: 2,
-                            },
-                            shadowOpacity: 0.25,
-                            shadowRadius: 3.84,
-                            elevation: 5,
-                          }}
-                          // Estilo de cada item da lista
-                          listItemContainerStyle={{
-                            backgroundColor: "white",
-                            borderWidth: 0,
-                            height: 45,
-                          }}
-                          // Estilo do texto de cada item
-                          listItemLabelStyle={{
-                            color: "#333",
-                            fontSize: 14,
-                          }}
-                          selectedItemLabelStyle={{
-                            color: "#6200ee",
-                            fontWeight: "bold",
-                          }}
-                          // Estilo do placeholder
-                          placeholderStyle={{
-                            color: "grey",
-                          }}
-                          // Estilo da seta
-                          arrowIconStyle={{
-                            tintColor: "#6200ee",
-                          }}
-                        />
+                        />          
                         <Text>Nível:</Text>
                         <Pressable
                           style={[
