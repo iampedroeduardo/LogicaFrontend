@@ -51,6 +51,7 @@ export default function Opcoes({
     },
     opcaoText: {
       fontSize: 18,
+      width: "80%"
     },
   });
 

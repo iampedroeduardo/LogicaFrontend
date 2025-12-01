@@ -1,5 +1,6 @@
 import { Ionicons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useRoute } from "@react-navigation/native";
 import { useState } from "react";
 import {
   KeyboardAvoidingView,
@@ -10,12 +11,49 @@ import {
   TextInput,
   TouchableOpacity,
   View,
+  Image,
+  Animated,
+  Pressable,
 } from "react-native";
 import DropDownPicker from "react-native-dropdown-picker";
-import { Button, HelperText } from "react-native-paper";
+import { Button, HelperText, Icon, Portal, Dialog } from "react-native-paper";
 import instance from "../axios.js";
 import Logo from "../components/Logo.js";
-import { useRoute } from "@react-navigation/native";
+
+const imagensPerfil = {
+  preto_none: require("../../assets/images/perfil_preto_none.png"),
+  preto_bone: require("../../assets/images/perfil_preto_bone.png"),
+  preto_coroa: require("../../assets/images/perfil_preto_coroa.png"),
+  preto_tiara: require("../../assets/images/perfil_preto_tiara.png"),
+  preto_cartola: require("../../assets/images/perfil_preto_cartola.png"),
+  preto_oculos: require("../../assets/images/perfil_preto_oculos.png"),
+  preto_squirtle: require("../../assets/images/perfil_preto_squirtle.png"),
+  preto_palhaco: require("../../assets/images/perfil_preto_palhaco.png"),
+  amarelo_none: require("../../assets/images/perfil_amarelo_none.png"),
+  amarelo_bone: require("../../assets/images/perfil_amarelo_bone.png"),
+  amarelo_coroa: require("../../assets/images/perfil_amarelo_coroa.png"),
+  amarelo_tiara: require("../../assets/images/perfil_amarelo_tiara.png"),
+  amarelo_cartola: require("../../assets/images/perfil_amarelo_cartola.png"),
+  amarelo_oculos: require("../../assets/images/perfil_amarelo_oculos.png"),
+  amarelo_squirtle: require("../../assets/images/perfil_amarelo_squirtle.png"),
+  amarelo_palhaco: require("../../assets/images/perfil_amarelo_palhaco.png"),
+  azul_none: require("../../assets/images/perfil_azul_none.png"),
+  azul_bone: require("../../assets/images/perfil_azul_bone.png"),
+  azul_coroa: require("../../assets/images/perfil_azul_coroa.png"),
+  azul_tiara: require("../../assets/images/perfil_azul_tiara.png"),
+  azul_cartola: require("../../assets/images/perfil_azul_cartola.png"),
+  azul_oculos: require("../../assets/images/perfil_azul_oculos.png"),
+  azul_squirtle: require("../../assets/images/perfil_azul_squirtle.png"),
+  azul_palhaco: require("../../assets/images/perfil_azul_palhaco.png"),
+  rosa_none: require("../../assets/images/perfil_rosa_none.png"),
+  rosa_bone: require("../../assets/images/perfil_rosa_bone.png"),
+  rosa_coroa: require("../../assets/images/perfil_rosa_coroa.png"),
+  rosa_tiara: require("../../assets/images/perfil_rosa_tiara.png"),
+  rosa_cartola: require("../../assets/images/perfil_rosa_cartola.png"),
+  rosa_oculos: require("../../assets/images/perfil_rosa_oculos.png"),
+  rosa_squirtle: require("../../assets/images/perfil_rosa_squirtle.png"),
+  rosa_palhaco: require("../../assets/images/perfil_rosa_palhaco.png"),
+};
 
 export default function Cadastro({ navigation }) {
   async function cadastrarUsuario() {
@@ -56,6 +94,8 @@ export default function Cadastro({ navigation }) {
           genero,
           dataNascimento,
           email: email.trim(),
+          cor: cor,
+          acessorio: acessorio,
         })
         .then(async (response) => {
           await AsyncStorage.setItem("usuario", JSON.stringify(response.data));
@@ -128,10 +168,22 @@ export default function Cadastro({ navigation }) {
   };
   const route = useRoute();
   let usuarioArmazenado = null;
-  if(route.params) {
-    usuarioArmazenado  = route.params.usuarioArmazenado;
-    //console.log(usuarioArmazenado);
+  if (route.params) {
+    usuarioArmazenado = route.params.usuarioArmazenado;
   }
+  const [cor, setCor] = useState(
+    usuarioArmazenado ? usuarioArmazenado.cor : "preto"
+  );
+  const [acessorio, setAcessorio] = useState(
+    usuarioArmazenado ? usuarioArmazenado.acessorio : "none"
+  );
+  const [imagemKey, setImagemKey] = useState(
+    `${cor.toLowerCase()}_${acessorio.toLowerCase()}`
+  );
+  const [imagemSource, setImagemSource] = useState(
+    imagensPerfil[imagemKey] || imagensPerfil["preto_none"]
+  );
+  const [dialogVisible, setDialogVisible] = useState(false);
   const [open, setOpen] = useState(false);
   const [genero, setGenero] = useState(
     usuarioArmazenado ? usuarioArmazenado.genero : null
@@ -189,6 +241,42 @@ export default function Cadastro({ navigation }) {
             showsVerticalScrollIndicator={false}
             keyboardShouldPersistTaps="handled"
           >
+            {usuarioArmazenado ? (
+              <Pressable
+                style={styles.avatarContainer}
+                onPress={() => {
+                  setDialogVisible(true);
+                }}
+              >
+                <View>
+                  <Text style={{ alignSelf: "center", fontSize: 19 }}>
+                    Avatar
+                  </Text>
+                  <View
+                    style={{
+                      height: 1,
+                      backgroundColor: "#000",
+                      width: 50,
+                      alignSelf: "center",
+                      marginVertical: 5,
+                    }}
+                  />
+                </View>
+
+                <View style={{ width: 100, height: 105 }}>
+                  <Image source={imagemSource} style={styles.perfil} />
+                  <View style={{ position: "absolute", left: 65, top: 65 }}>
+                    <Icon
+                      source="square-edit-outline"
+                      size={30}
+                      color="black"
+                    />
+                  </View>
+                </View>
+              </Pressable>
+            ) : (
+              <></>
+            )}
             <Text style={{ alignSelf: "center", fontSize: 19 }}>
               Dados Pessoais
             </Text>
@@ -442,6 +530,82 @@ export default function Cadastro({ navigation }) {
           Salvar
         </Button>
       </View>
+      {usuarioArmazenado && (
+        <Portal>
+          <Dialog
+            visible={dialogVisible}
+            onDismiss={() => {
+              setDialogVisible(false);
+              navigation.goBack();
+            }}
+            style={styles.dialog}
+          >
+            <View style={styles.dialogContent}>
+              <Text style={{ fontSize: 20, fontWeight: "bold" }}>Cor</Text>
+              <View style={styles.avatarImages}>
+                {usuarioArmazenado.cores.map((c) => {
+                  return (
+                    <Pressable
+                      key={c.id}
+                      onPress={() => {
+                        setCor(c.cor);
+                      }}
+                    >
+                      <Image
+                        source={
+                          imagensPerfil[
+                            `${c.cor.toLowerCase()}_${acessorio.toLowerCase()}`
+                          ]
+                        }
+                        style={{
+                          ...styles.avatarConfig,
+                          opacity: cor === c.cor ? 1 : 0.5,
+                        }}
+                      />
+                    </Pressable>
+                  );
+                })}
+              </View>
+              <Text style={{ fontSize: 20, fontWeight: "bold" }}>
+                Acessório
+              </Text>
+              <View style={styles.avatarImages}>
+                {usuarioArmazenado.acessorios.map((a) => {
+                  return (
+                    <Pressable
+                      key={a.id}
+                      onPress={() => {
+                        setAcessorio(a.acessorio);
+                      }}
+                    >
+                      <Image
+                        source={
+                          imagensPerfil[
+                            `${cor.toLowerCase()}_${a.acessorio.toLowerCase()}`
+                          ]
+                        }
+                        style={{
+                          ...styles.avatarConfig,
+                          opacity: acessorio === a.acessorio ? 1 : 0.5,
+                        }}
+                      />
+                    </Pressable>
+                  );
+                })}
+              </View>
+              <Button
+                mode="elevated"
+                textColor="white"
+                buttonColor="#6446db"
+                style={{ width: 150, alignSelf: "center" }}
+                onPress={()=>{setDialogVisible(false); setImagemKey(`${cor.toLowerCase()}_${acessorio.toLowerCase()}`); setImagemSource(imagensPerfil[`${cor.toLowerCase()}_${acessorio.toLowerCase()}`]);}}
+              >
+                Salvar
+              </Button>
+            </View>
+          </Dialog>
+        </Portal>
+      )}
     </View>
   );
 }
@@ -480,5 +644,56 @@ const styles = StyleSheet.create({
   helper: {
     fontSize: 13,
     textColor: "red",
+  },
+  perfil: {
+    width: 90,
+    height: 92,
+  },
+  avatarContainer: {
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 10,
+  },
+  dialog: {
+    backgroundColor: "#6446DB",
+    alignSelf: "center",
+    justifyContent: "center",
+    // alignItems: "center",
+    borderRadius: 15,
+    width: 350,
+    height: 450,
+    paddingHorizontal: 10,
+    paddingBottom: 25,
+  },
+  dialogContent: {
+    backgroundColor: "white",
+    width: "100%",
+    height: "100%",
+    borderRadius: 15,
+    display: "flex",
+    flexDirection: "column",
+    gap: 20,
+    padding: 15,
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
+  },
+  avatarConfig: {
+    width: 70,
+    height: 71,
+  },
+  avatarImages: {
+    display: "flex",
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 5,
+    width: "100%",
   },
 });

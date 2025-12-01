@@ -296,7 +296,7 @@ export default function Questao({ navigation, route }) {
           <View style={styles.dialogContent}>
             {subiuRank ? (
               <Text style={styles.dialogText}>
-                Parabéns! Você subiu de Rank! 🎉
+                Parabéns! Você subiu de Rank e ganhou {usuarioAtual.rank.id === 2 ? "novas cores para seu avatar" : "novos acessórios para seu avatar"}! 🎉
               </Text>
             ) : subiuNivel ? (
               <Text style={styles.dialogText}>
