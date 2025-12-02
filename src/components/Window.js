@@ -1,6 +1,8 @@
+import * as ImagePicker from "expo-image-picker";
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
   Animated,
+  Image,
   PanResponder,
   Pressable,
   ScrollView,
@@ -23,26 +25,20 @@ const FilterCheckbox = ({ label, value, onValueChange }) => (
     style={styles.dialogQuestion}
     onPress={() => onValueChange(!value)}
   >
-    <Text style={{ fontSize: 14, marginRight: 10, flex: 1 }}>
-      {label}
-    </Text>
+    <Text style={{ fontSize: 14, marginRight: 10, flex: 1 }}>{label}</Text>
     <View
       style={{
         width: 24,
         height: 24,
         borderWidth: 2,
         borderColor: "#6446db",
-        backgroundColor: value
-          ? "#6446db"
-          : "transparent",
+        backgroundColor: value ? "#6446db" : "transparent",
         borderRadius: 4,
         justifyContent: "center",
         alignItems: "center",
       }}
     >
-      {value && (
-        <Icon source="check" size={16} color="white" />
-      )}
+      {value && <Icon source="check" size={16} color="white" />}
     </View>
   </Pressable>
 );
@@ -126,6 +122,22 @@ export default function Window({
     { label: "Probabilidade", value: "probabilidade" },
   ]);
 
+  // Função para selecionar uma imagem da galeria
+  const pickImage = async () => {
+    // Nenhuma permissão é necessária para iniciar a biblioteca de imagens
+    let result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      aspect: [3, 4],
+      quality: 1,
+    });
+
+    if (!result.canceled) {
+      // Atualiza o estado da janela com a URI da imagem selecionada
+      updateWindow({ ...window, imagem: result.assets[0].uri });
+    }
+  };
+
   const [startSelection, setStartSelection] = useState(0);
   const [endSelection, setEndSelection] = useState(0);
   const [openedError, setOpenedError] = useState(0);
@@ -147,7 +159,7 @@ export default function Window({
   // Esses filtros nao precisa pra adm
   const [aprovadas, setAprovadas] = useState(true);
   const [pendentes, setPendentes] = useState(true);
-  const [negadas, setNegadas] = useState(true); 
+  const [negadas, setNegadas] = useState(true);
   // Esse aqui só pra adm
   const [minhas, setMinhas] = useState(false);
 
@@ -158,19 +170,37 @@ export default function Window({
         // 2. Corrigido 'user' para 'usuario' e 'switchQuestionTemplate' para 'switchStatusQuestions'.
         const query = {
           pesquisa,
-          aprovadasFiltro: switchStatusQuestions === "Publicadas" && aprovadasFiltro,
+          aprovadasFiltro:
+            switchStatusQuestions === "Publicadas" && aprovadasFiltro,
           aprovadas: switchStatusQuestions === "Publicadas" && aprovadas,
-          pendentesFiltro: switchStatusQuestions === "Publicadas" && pendentesFiltro,
-          negadasFiltro: switchStatusQuestions === "Publicadas" && negadasFiltro,
-          pendentes: (switchStatusQuestions === "Avaliação" || (switchStatusQuestions === "Publicadas" && !usuario.adm)) && pendentes,
-          negadas: switchStatusQuestions === "Publicadas" && negadas && !usuario.adm,
+          pendentesFiltro:
+            switchStatusQuestions === "Publicadas" && pendentesFiltro,
+          negadasFiltro:
+            switchStatusQuestions === "Publicadas" && negadasFiltro,
+          pendentes:
+            (switchStatusQuestions === "Avaliação" ||
+              (switchStatusQuestions === "Publicadas" && !usuario.adm)) &&
+            pendentes,
+          negadas:
+            switchStatusQuestions === "Publicadas" && negadas && !usuario.adm,
           rascunhos: switchStatusQuestions === "Rascunhos",
-          minhas: !usuario.adm || minhas || switchStatusQuestions === "Rascunhos",
+          minhas:
+            !usuario.adm || minhas || switchStatusQuestions === "Rascunhos",
         };
         setQuestions(await getQuestions(query));
-      }
+      };
       fetchMyQuestions();
-    }, [switchStatusQuestions, pesquisa, aprovadas, pendentes, negadas, minhas, aprovadasFiltro, pendentesFiltro, negadasFiltro]);
+    }, [
+      switchStatusQuestions,
+      pesquisa,
+      aprovadas,
+      pendentes,
+      negadas,
+      minhas,
+      aprovadasFiltro,
+      pendentesFiltro,
+      negadasFiltro,
+    ]);
   }
   // Função para lidar com o clique no widget do editor
   const handleHighlightClick = (item) => {
@@ -457,34 +487,99 @@ export default function Window({
                     </Text>
                   </Pressable>
                 </View>
-                <View>
-                  <TextInput
-                    multiline={true}
-                    numberOfLines={30}
-                    placeholder="Escreva a descrição da questão aqui..."
-                    style={{
-                      height: 350,
-                      width: 280,
-                      textAlignVertical: "top",
-                      backgroundColor: "white",
-                      padding: 10,
-                      borderRadius: 15,
-                      outlineStyle: "none",
-                      display:
-                        switchQuestionTemplate == "question" ? "flex" : "none",
-                    }}
-                    value={window.descricao}
-                    onChangeText={(text) =>
-                      updateWindow({ ...window, descricao: text })
-                    }
-                  />
+                <View
+                  style={{
+                    display: "flex",
+                    flexDirection: "column",
+                    justifyContent: "center",
+                    alignItems: "center",
+                  }}
+                >
+                  {switchQuestionTemplate == "question" &&
+                  window.descricao.length === 0 ? (
+                    window.imagem ? (
+                      <View style={{ alignItems: "center", marginBottom: 10 }}>
+                        <Image
+                          source={{ uri: window.imagem }}
+                          style={{
+                            height: 280,
+                            width: 260,
+                            borderRadius: 10,
+                            marginTop: 10,
+                          }}
+                        />
+                        <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 10 }}>
+                          <Pressable
+                            style={{
+                              ...styles.selectImageButton,
+                              marginTop: 10,
+                            }}
+                            onPress={pickImage}
+                          >
+                            <Text
+                              style={{ color: "white", textAlign: "center", fontSize: 14}}
+                            >
+                              Trocar imagem
+                            </Text>
+                          </Pressable>
+                          <Pressable
+                            style={styles.deleteButton}
+                            onPress={() => {
+                              updateWindow({ ...window, imagem: null });
+                            }}
+                          >
+                            <Icon source="delete" size={14} color="white" />
+                          </Pressable>
+                        </View>
+                      </View>
+                    ) : (
+                      <View style={styles.imagePickerContainer}>
+                        <Pressable
+                          style={styles.selectImageButton}
+                          onPress={pickImage}
+                        >
+                          <Text style={{ color: "white", textAlign: "center", fontSize: 14 }}>
+                            Selecionar imagem
+                          </Text>
+                        </Pressable>
+                        <Text>ou</Text>
+                      </View>
+                    )
+                  ) : (
+                    <></>
+                  )}
+
+                  {!window.imagem && (
+                    <TextInput
+                      multiline={true}
+                      numberOfLines={30}
+                      placeholder="Escreva a descrição da questão aqui..."
+                      style={{
+                        height: window.descricao.length === 0 ? 180 : 360,
+                        width: 280,
+                        textAlignVertical: "top",
+                        backgroundColor: "white",
+                        padding: 10,
+                        borderRadius: 15,
+                        outlineStyle: "none",
+                        display:
+                          switchQuestionTemplate == "question"
+                            ? "flex"
+                            : "none",
+                      }}
+                      value={window.descricao}
+                      onChangeText={(text) =>
+                        updateWindow({ ...window, descricao: text })
+                      }
+                    />
+                  )}
 
                   <TextInput
                     multiline={true}
                     numberOfLines={30}
                     placeholder="Escreva o gabarito da questão aqui..."
                     style={{
-                      height: 350,
+                      height: 360,
                       width: 280,
                       textAlignVertical: "top",
                       backgroundColor: "white",
@@ -670,9 +765,11 @@ export default function Window({
                         <View key={x.id} style={styles.questionItem}>
                           <Text style={styles.questionName}>{x.nome}</Text>
                           <View style={styles.questionActions}>
-                            <Pressable onPress={async () => {
-                              openWindow(x.id, x.type)
-                            }}>
+                            <Pressable
+                              onPress={async () => {
+                                openWindow(x.id, x.type);
+                              }}
+                            >
                               <Icon
                                 source="square-edit-outline"
                                 size={14}
@@ -693,8 +790,6 @@ export default function Window({
                   )}
                 </View>
               </View>
-              
-              
             )}
             {window.type == "multiplaEscolha" && (
               <TextInput
@@ -719,9 +814,8 @@ export default function Window({
           </View>
         )}
       </View>
-      {window.type !== "minhasQuestoes" &&
-        !closed ?
-        (window.type === "codigo" ? (
+      {window.type !== "minhasQuestoes" && !closed ? (
+        window.type === "codigo" ? (
           <View style={styles.questionPopups}>
             <View style={styles.popupView}>
               <Pressable
@@ -760,7 +854,9 @@ export default function Window({
                         setOpenRank(false);
                       }}
                       onSelectItem={(item) => {
-                        const rankSelecionado = ranks.find(r => r.categoria === item.value);
+                        const rankSelecionado = ranks.find(
+                          (r) => r.categoria === item.value
+                        );
                         updateWindow({
                           ...window, // Mantém as propriedades existentes da janela
                           categoria: item.value,
@@ -1305,9 +1401,7 @@ export default function Window({
                       zIndex={5000}
                       style={styles.picker}
                       items={
-                        tipo === "Programacao"
-                          ? categoriasProg
-                          : categoriasRac
+                        tipo === "Programacao" ? categoriasProg : categoriasRac
                       }
                       value={categoria}
                       open={openCategoria}
@@ -1317,7 +1411,9 @@ export default function Window({
                         setOpenRank(false);
                       }}
                       onSelectItem={(item) => {
-                        const rankSelecionado = ranks.find(r => r.categoria === item.value);
+                        const rankSelecionado = ranks.find(
+                          (r) => r.categoria === item.value
+                        );
                         updateWindow({
                           ...window,
                           categoria: item.value,
@@ -1365,99 +1461,99 @@ export default function Window({
                         tintColor: "#6200ee",
                       }}
                     />
-                      <View>
-                        <Text>Tipo:</Text>
-                        <DropDownPicker
-                          zIndex={5000}
-                          style={styles.picker}
-                          items={tipos}
-                          value={tipo}
-                          open={openTipo}
-                          setItems={setTipos}
-                          setOpen={setOpenTipo}
-                          setValue={setTipo}
-                          onOpen={() => {
-                            setOpenRank(false);
-                            setOpenNivel(false);
-                          }}
-                          onSelectItem={(item) => {
-                            const value = item.value; // `value` é o novo tipo selecionado
-                            // Filtra a lista original de `ranks` com base no tipo
-                            const newRankItems = ranks
-                              .filter((r) => r.tipo === value)
-                              .map((r) => ({ label: r.nome, value: r.id }));
-                            setRankItens(newRankItems);
-                            setRank(null); // Reseta a seleção do rank
-                            updateWindow({
-                              ...window,
-                              tipo: value,
-                              rankId: null,
-                            });
-                          }}
-                          placeholder="Selecione um tipo..."
-                          listMode="SCROLLVIEW"
-                          dropDownContainerStyle={{
-                            zIndex: 5000,
-                            backgroundColor: "white",
-                            borderWidth: 0,
-                            borderRadius: 20,
-                            width: 210,
-                            shadowColor: "#000",
-                            shadowOffset: {
-                              width: 0,
-                              height: 2,
-                            },
-                            shadowOpacity: 0.25,
-                            shadowRadius: 3.84,
-                            elevation: 5,
-                          }}
-                          // Estilo de cada item da lista
-                          listItemContainerStyle={{
-                            backgroundColor: "white",
-                            borderWidth: 0,
-                            height: 45,
-                          }}
-                          // Estilo do texto de cada item
-                          listItemLabelStyle={{
-                            color: "#333",
-                            fontSize: 14,
-                          }}
-                          selectedItemLabelStyle={{
-                            color: "#6200ee",
-                            fontWeight: "bold",
-                          }}
-                          // Estilo do placeholder
-                          placeholderStyle={{
-                            color: "grey",
-                          }}
-                          // Estilo da seta
-                          arrowIconStyle={{
-                            tintColor: "#6200ee",
-                          }}
-                        />          
-                        <Text>Nível:</Text>
-                        <Pressable
-                          style={[
-                            styles.erroLacunaNivel,
-                            {
-                              backgroundColor:
-                                window.nivel === 0
-                                  ? "#9CEC86"
-                                  : window.nivel === 1
-                                  ? "#ece286ff"
-                                  : "#FF9999",
-                            },
-                          ]}
-                          onPress={() => {
-                            updateWindow({
-                              ...window,
-                              nivel: (window.nivel + 1) % 3,
-                            });
-                          }}
-                        >
-                          <Text>{"+".repeat((window.nivel || 0) + 1)}</Text>
-                        </Pressable>
-                      </View>
+                    <View>
+                      <Text>Tipo:</Text>
+                      <DropDownPicker
+                        zIndex={5000}
+                        style={styles.picker}
+                        items={tipos}
+                        value={tipo}
+                        open={openTipo}
+                        setItems={setTipos}
+                        setOpen={setOpenTipo}
+                        setValue={setTipo}
+                        onOpen={() => {
+                          setOpenRank(false);
+                          setOpenNivel(false);
+                        }}
+                        onSelectItem={(item) => {
+                          const value = item.value; // `value` é o novo tipo selecionado
+                          // Filtra a lista original de `ranks` com base no tipo
+                          const newRankItems = ranks
+                            .filter((r) => r.tipo === value)
+                            .map((r) => ({ label: r.nome, value: r.id }));
+                          setRankItens(newRankItems);
+                          setRank(null); // Reseta a seleção do rank
+                          updateWindow({
+                            ...window,
+                            tipo: value,
+                            rankId: null,
+                          });
+                        }}
+                        placeholder="Selecione um tipo..."
+                        listMode="SCROLLVIEW"
+                        dropDownContainerStyle={{
+                          zIndex: 5000,
+                          backgroundColor: "white",
+                          borderWidth: 0,
+                          borderRadius: 20,
+                          width: 210,
+                          shadowColor: "#000",
+                          shadowOffset: {
+                            width: 0,
+                            height: 2,
+                          },
+                          shadowOpacity: 0.25,
+                          shadowRadius: 3.84,
+                          elevation: 5,
+                        }}
+                        // Estilo de cada item da lista
+                        listItemContainerStyle={{
+                          backgroundColor: "white",
+                          borderWidth: 0,
+                          height: 45,
+                        }}
+                        // Estilo do texto de cada item
+                        listItemLabelStyle={{
+                          color: "#333",
+                          fontSize: 14,
+                        }}
+                        selectedItemLabelStyle={{
+                          color: "#6200ee",
+                          fontWeight: "bold",
+                        }}
+                        // Estilo do placeholder
+                        placeholderStyle={{
+                          color: "grey",
+                        }}
+                        // Estilo da seta
+                        arrowIconStyle={{
+                          tintColor: "#6200ee",
+                        }}
+                      />
+                      <Text>Nível:</Text>
+                      <Pressable
+                        style={[
+                          styles.erroLacunaNivel,
+                          {
+                            backgroundColor:
+                              window.nivel === 0
+                                ? "#9CEC86"
+                                : window.nivel === 1
+                                ? "#ece286ff"
+                                : "#FF9999",
+                          },
+                        ]}
+                        onPress={() => {
+                          updateWindow({
+                            ...window,
+                            nivel: (window.nivel + 1) % 3,
+                          });
+                        }}
+                      >
+                        <Text>{"+".repeat((window.nivel || 0) + 1)}</Text>
+                      </Pressable>
+                    </View>
                   </View>
                 </View>
               )}
@@ -1732,46 +1828,53 @@ export default function Window({
               </>
             )}
           </View>
-        )) : (
-          <View style={styles.questionPopups}>
-              <View style={styles.popupView}>
-                  <Pressable
-                      style={styles.popupIcon}
-                      onPress={() => {
-                      setAbertoFiltro(!abertoFiltro);
+        )
+      ) : (
+        <View style={styles.questionPopups}>
+          <View style={styles.popupView}>
+            <Pressable
+              style={styles.popupIcon}
+              onPress={() => {
+                setAbertoFiltro(!abertoFiltro);
+              }}
+            >
+              <Icon source="filter" size={20} color="black" />
+            </Pressable>
+            {abertoFiltro && (
+              <View style={styles.viewDesc}>
+                <View style={styles.popupQuestions}>
+                  <Text
+                    style={{
+                      fontWeight: "bold",
+                      fontSize: 16,
+                      marginBottom: 10,
                     }}
                   >
-                  <Icon source="filter" size={20} color="black" />
-                  </Pressable>
-                  {abertoFiltro && (
-                    <View style={styles.viewDesc}>
-                      <View style={styles.popupQuestions}>
-                      <Text style={{fontWeight: 'bold', fontSize: 16, marginBottom: 10}}>Filtrar por Status</Text>
-                      <FilterCheckbox 
-                        label="Aprovadas"
-                        value={aprovadasFiltro}
-                        onValueChange={setAprovadasFiltro}
-                      />
-                      <FilterCheckbox 
-                        label="Pendentes"
-                        value={pendentesFiltro}
-                        onValueChange={setPendentesFiltro}
-                      />
-                      {!usuario.adm && (
-                        <FilterCheckbox 
-                        label="Negadas"
-                        value={negadasFiltro}
-                        onValueChange={setNegadasFiltro}
-                      />
-                      )}
-                    </View>
-                     </View>
+                    Filtrar por Status
+                  </Text>
+                  <FilterCheckbox
+                    label="Aprovadas"
+                    value={aprovadasFiltro}
+                    onValueChange={setAprovadasFiltro}
+                  />
+                  <FilterCheckbox
+                    label="Pendentes"
+                    value={pendentesFiltro}
+                    onValueChange={setPendentesFiltro}
+                  />
+                  {!usuario.adm && (
+                    <FilterCheckbox
+                      label="Negadas"
+                      value={negadasFiltro}
+                      onValueChange={setNegadasFiltro}
+                    />
                   )}
-                  
-                  </View>
                 </View>
-        )}
-        
+              </View>
+            )}
+          </View>
+        </View>
+      )}
     </Animated.View>
   );
 }
@@ -2117,12 +2220,31 @@ const styles = StyleSheet.create({
     display: "flex",
     flexDirection: "row",
     gap: 10,
-  
   },
   dialogQuestion: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: 10,
     paddingVertical: 8,
+  },
+  selectImageButton: {
+    width: 150,
+    backgroundColor: "#6446DB",
+    padding: 8,
+    borderRadius: 15,
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
+  },
+  imagePickerContainer: {
+    height: 180,
+    display: "flex",
+    justifyContent: "space-evenly",
+    alignItems: "center",
   },
 });

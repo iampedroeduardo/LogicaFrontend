@@ -4,7 +4,8 @@ import { LinearGradient } from "expo-linear-gradient";
 import { Image, Pressable, StyleSheet, Text, View } from "react-native";
 import { Icon, Portal, Dialog, Button } from "react-native-paper";
 import Logo from "../components/Logo";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import instance from "../axios";
 
 const imagensPerfil = {
   preto_none: require("../../assets/images/perfil_preto_none.png"),
@@ -46,9 +47,27 @@ export default function Perfil({ navigation, usuario }) {
   if (!usuario) {
     return null;
   }
+  useEffect(() => {
+    async function ofensiva() {
+      try {
+        const { data } = await instance.get("/ofensiva", {
+          headers: {
+            Authorization: `Bearer ${usuario.token}`,
+          },
+        });
+        setOfensiva(data.ofensiva);
+        setRecordeOfensiva(data.recordeOfensiva);
+      } catch (error) {
+        console.log(error);
+      }
+    }
+    ofensiva();
+  }, []);
   const imagemKey = `${usuario.cor.toLowerCase()}_${usuario.acessorio.toLowerCase()}`;
   const imagemSource = imagensPerfil[imagemKey] || imagensPerfil["preto_none"]; // Imagem padrão
   const [visible, setVisible] = useState(false);
+  const [ofensiva, setOfensiva] = useState(0);
+  const [recordeOfensiva, setRecordeOfensiva] = useState(0);
   return (
     <View style={styles.container}>
       <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
@@ -95,7 +114,13 @@ export default function Perfil({ navigation, usuario }) {
               style={{ flexDirection: "row", alignItems: "center", gap: 5 }}
             >
               <Text style={styles.titulo}>{usuario.usuario}</Text>
-              <Pressable onPress={() => navigation.navigate("Cadastro", {usuarioArmazenado: usuario})}>
+              <Pressable
+                onPress={() =>
+                  navigation.navigate("Cadastro", {
+                    usuarioArmazenado: usuario,
+                  })
+                }
+              >
                 <Icon source="square-edit-outline" size={30} color="black" />
               </Pressable>
             </View>
@@ -224,8 +249,10 @@ export default function Perfil({ navigation, usuario }) {
                 Ofensiva
               </Text>
             </View>
-            <Text style={{ fontSize: 50, textAlign: "center" }}>0</Text>
-            <Text style={{ ...styles.titulo, textAlign: "center" }}>Dias</Text>
+            <Text style={{ fontSize: 50, textAlign: "center" }}>{ofensiva}</Text>
+            <Text style={{ ...styles.titulo, textAlign: "center" }}>
+              Recorde: {recordeOfensiva}
+            </Text>
           </LinearGradient>
         </View>
       </View>
