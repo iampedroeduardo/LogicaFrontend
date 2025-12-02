@@ -395,7 +395,7 @@ export default function Window({
             />
           )}
           <Pressable style={styles.deleteButton} onPress={() => deleteWindow()}>
-            <Icon source="delete" size={14} color="black" />
+            <Icon source="delete" size={14} color="white" />
           </Pressable>
           <Pressable
             style={styles.deleteButton}
@@ -403,7 +403,7 @@ export default function Window({
               setClosed(!closed);
             }}
           >
-            <Icon source={closed ? "eye-off" : "eye"} size={14} color="black" />
+            <Icon source={closed ? "eye-off" : "eye"} size={14} color="white" />
           </Pressable>
           <Animated.View
             style={[
@@ -412,7 +412,7 @@ export default function Window({
             ]}
             {...panResponder.panHandlers}
           >
-            <Icon source="drag" size={14} color="black" />
+            <Icon source="cursor-move" size={14} color="white" />
           </Animated.View>
         </View>
         {!closed && (
@@ -698,8 +698,7 @@ export default function Window({
             )}
             {window.type == "multiplaEscolha" && (
               <TextInput
-                multiline={true}
-                numberOfLines={30}
+                maxLength={30}
                 placeholder="Escreva a pergunta da questão aqui..."
                 value={window.pergunta}
                 style={{
@@ -710,6 +709,7 @@ export default function Window({
                   //placeholderTextColor: "rgb(0, 0, 0)",
                   padding: 10,
                   outlineStyle: "none",
+                  color: "white",
                 }}
                 onChangeText={(text) =>
                   updateWindow({ ...window, pergunta: text })
@@ -1365,7 +1365,6 @@ export default function Window({
                         tintColor: "#6200ee",
                       }}
                     />
-                    {usuario.adm && (
                       <View>
                         <Text>Tipo:</Text>
                         <DropDownPicker
@@ -1459,7 +1458,6 @@ export default function Window({
                           <Text>{"+".repeat((window.nivel || 0) + 1)}</Text>
                         </Pressable>
                       </View>
-                    )}
                   </View>
                 </View>
               )}
@@ -1493,6 +1491,7 @@ export default function Window({
                           onChangeText={(text) =>
                             updateWindow({ ...window, opcao1: text })
                           }
+                          maxLength={60}
                           style={{
                             height: 40,
                             width: 230,
@@ -1558,6 +1557,7 @@ export default function Window({
                           onChangeText={(text) =>
                             updateWindow({ ...window, opcao2: text })
                           }
+                          maxLength={60}
                           style={{
                             height: 40,
                             width: 230,
@@ -1623,6 +1623,7 @@ export default function Window({
                           onChangeText={(text) =>
                             updateWindow({ ...window, opcao3: text })
                           }
+                          maxLength={60}
                           style={{
                             height: 40,
                             width: 230,
@@ -1688,6 +1689,7 @@ export default function Window({
                           onChangeText={(text) =>
                             updateWindow({ ...window, opcao4: text })
                           }
+                          maxLength={60}
                           style={{
                             height: 40,
                             width: 230,

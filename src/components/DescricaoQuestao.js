@@ -1,5 +1,5 @@
 import { LinearGradient } from "expo-linear-gradient";
-import { StyleSheet, Text, View } from "react-native";
+import { ScrollView, StyleSheet, Text, View } from "react-native";
 
 export default function DescricaoQuestao({ questao, modo }) {
   const styles = StyleSheet.create({
@@ -19,6 +19,12 @@ export default function DescricaoQuestao({ questao, modo }) {
       elevation: 5,
       padding: 12,
     },
+    divContent: {
+      alignItems: "center",
+      paddingVertical: 10,
+      paddingHorizontal: 15,
+      gap: 10,
+    },
     div: {
       width: "100%",
       height: "89%",
@@ -32,10 +38,6 @@ export default function DescricaoQuestao({ questao, modo }) {
       shadowOpacity: 0.25,
       shadowRadius: 3.84,
       elevation: 5,
-      alignItems: "center",
-      paddingVertical: 10,
-      paddingHorizontal: 15,
-      gap: 10,
     },
     pergunta: {
       width: "100%",
@@ -61,12 +63,15 @@ export default function DescricaoQuestao({ questao, modo }) {
       end={{ x: 1, y: 1 }}
       style={styles.borderDiv}
     >
-      <View style={styles.div}>
+      <ScrollView
+        style={styles.div}
+        contentContainerStyle={styles.divContent}
+      >
         <Text style={styles.perguntaText}>{questao.nome}</Text>
         <Text style={styles.descricaoText}>
           {modo === "questao" ? questao.descricao : questao.gabarito}
         </Text>
-      </View>
+      </ScrollView>
       <View style={styles.pergunta}>
         <Text style={styles.perguntaText}>{questao.tipo === "multiplaEscolha" ? questao.pergunta : questao.tipoErroLacuna === "Erro" ? "Encontre o erro" : "Complete as lacunas"}</Text>
       </View>
