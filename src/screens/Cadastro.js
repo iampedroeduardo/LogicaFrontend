@@ -1,10 +1,8 @@
 import { Ionicons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useEffect, useState } from "react";
 import { useRoute } from "@react-navigation/native";
-import { useState } from "react";
 import {
-  KeyboardAvoidingView,
-  Platform,
   ScrollView,
   StyleSheet,
   Text,
@@ -68,6 +66,7 @@ export default function Cadastro({ navigation }) {
           dataNascimento,
           email: email.trim(),
           senha: senha,
+          tipo: tipo,
         })
         .then(async (response) => {
           await AsyncStorage.setItem("usuario", JSON.stringify(response.data));
@@ -94,6 +93,7 @@ export default function Cadastro({ navigation }) {
           genero,
           dataNascimento,
           email: email.trim(),
+          tipo: tipo,
           cor: cor,
           acessorio: acessorio,
         })
@@ -146,6 +146,10 @@ export default function Cadastro({ navigation }) {
     return senha != confirmaSenha;
   };
 
+  const hasErrorsTipo = () => {
+    return tipo == null;
+  };
+
   const hasErrors = () => {
     if (usuarioArmazenado) {
       return (
@@ -163,7 +167,8 @@ export default function Cadastro({ navigation }) {
       hasErrorsDataDeNascimento() ||
       hasErrorsSenha() ||
       hasErrorsConfirmarSenha() ||
-      hasErrorsGenero()
+      hasErrorsGenero() ||
+      hasErrorsTipo()
     );
   };
   const route = useRoute();
@@ -171,6 +176,7 @@ export default function Cadastro({ navigation }) {
   if (route.params) {
     usuarioArmazenado = route.params.usuarioArmazenado;
   }
+  const [openGenero, setOpenGenero] = useState(false);
   const [cor, setCor] = useState(
     usuarioArmazenado ? usuarioArmazenado.cor : "preto"
   );
@@ -184,7 +190,6 @@ export default function Cadastro({ navigation }) {
     imagensPerfil[imagemKey] || imagensPerfil["preto_none"]
   );
   const [dialogVisible, setDialogVisible] = useState(false);
-  const [open, setOpen] = useState(false);
   const [genero, setGenero] = useState(
     usuarioArmazenado ? usuarioArmazenado.genero : null
   );
@@ -192,6 +197,14 @@ export default function Cadastro({ navigation }) {
     { label: "Masculino", value: "Masculino" },
     { label: "Feminino", value: "Feminino" },
     { label: "Outro", value: "Outro" },
+  ]);
+  const [openTipo, setOpenTipo] = useState(false);
+  const [tipo, setTipo] = useState(
+    usuarioArmazenado ? usuarioArmazenado.tipo : null
+  ); // State for the selected value
+  const [tipos, setTipos] = useState([
+    { label: "Programação", value: "Programacao" },
+    { label: "Raciocínio Lógico", value: "RaciocinioLogico" },
   ]);
   const [nome, setNome] = useState(
     usuarioArmazenado ? usuarioArmazenado.nome : ""
@@ -226,17 +239,13 @@ export default function Cadastro({ navigation }) {
   const [helperConfirmarSenha, setHelperConfirmarSenha] = useState(false);
   const [helperDataDeNascimento, setHelperDataDeNascimento] = useState(false);
   const [helperGenero, setHelperGenero] = useState(false);
+  const [helperTipo, setHelperTipo] = useState(false);
   const [showSenha, setShowSenha] = useState(false);
   const [showConfirmarSenha, setShowConfirmarSenha] = useState(false);
   return (
     <View style={styles.container}>
       <Logo />
-      <View style={{ margin: 20, height: "80%" }}>
-        <KeyboardAvoidingView
-          style={{ flex: 1 }}
-          behavior={Platform.OS === "ios" ? "padding" : "height"}
-          keyboardVerticalOffset={Platform.OS === "ios" ? 120 : 120}
-        >
+      <View style={{ flex: 1, marginHorizontal: 20, marginTop: 20 }}>
           <ScrollView
             showsVerticalScrollIndicator={false}
             keyboardShouldPersistTaps="handled"
@@ -347,14 +356,15 @@ export default function Cadastro({ navigation }) {
             <Text style={styles.label}>Gênero:</Text>
             <DropDownPicker
               style={styles.input}
-              open={open}
+              open={openGenero}
               value={genero}
               items={generos}
-              setOpen={setOpen}
+              setOpen={setOpenGenero}
               setValue={setGenero}
               setItems={setGeneros}
               placeholder="Selecionar"
               listMode="SCROLLVIEW"
+              dropDownDirection="BOTTOM"
               dropDownContainerStyle={{
                 backgroundColor: "none",
                 borderWidth: 0,
@@ -507,10 +517,55 @@ export default function Cadastro({ navigation }) {
                 </HelperText>
               </View>
             )}
+            {!usuarioArmazenado && (
+              <>
+                <DropDownPicker
+                  style={styles.input}
+                  open={openTipo}
+                  value={tipo}
+                  items={tipos}
+                  setOpen={setOpenTipo}
+                  setValue={setTipo}
+                  setItems={setTipos}
+                  placeholder="Selecionar"
+                  listMode="SCROLLVIEW"
+                  dropDownDirection="BOTTOM"
+                  disabled={!!usuarioArmazenado}
+                  dropDownContainerStyle={{
+                    backgroundColor: "none",
+                    borderWidth: 0,
+                    borderRadius: 20,
+                    width: 300,
+                    marginHorizontal: 5,
+                  }}
+                />
+                <HelperText
+                  style={styles.helper}
+                  type="error"
+                  visible={hasErrorsTipo() && helperTipo}
+                >
+                  Selecione um tipo de usuário
+                </HelperText>
+                <View style={{ marginTop: 10, paddingHorizontal: 5 }}>
+                  {tipo === "Programacao" && (
+                    <Text style={styles.infoText}>
+                      O tipo "Programação" foca em desafios de algoritmos,
+                      estruturas de dados e lógica de programação aplicada. 🖥️
+                    </Text>
+                  )}
+                  {tipo === "RaciocinioLogico" && (
+                    <Text style={styles.infoText}>
+                      O tipo "Raciocínio Lógico" aborda quebra-cabeças, sequências
+                      lógicas e problemas que testam sua capacidade de dedução. 🧠
+                    </Text>
+                  )}
+                </View>
+              </>
+            )}
+
           </ScrollView>
-        </KeyboardAvoidingView>
       </View>
-      <View style={{ flexDirection: "row", justifyContent: "center", gap: 35 }}>
+      <View style={{ flexDirection: "row", justifyContent: "center", gap: 35, paddingVertical: 20 }}>
         <Button
           mode="elevated"
           textColor="black"
@@ -645,6 +700,12 @@ const styles = StyleSheet.create({
     fontSize: 13,
     textColor: "red",
   },
+<<<<<<< HEAD
+  infoText: {
+    fontSize: 14,
+    color: "#666",
+    fontStyle: "italic",
+=======
   perfil: {
     width: 90,
     height: 92,
@@ -695,5 +756,6 @@ const styles = StyleSheet.create({
     flexWrap: "wrap",
     gap: 5,
     width: "100%",
+>>>>>>> 7fe99fefb169a5bf222203c0b94919aa738054a9
   },
 });

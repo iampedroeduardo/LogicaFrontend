@@ -71,51 +71,55 @@ export default function Inicio({ navigation, usuario }) {
               </Pressable>
               <View style={styles.caminhotext}>
                 <Text style={styles.titulo}>Iniciar</Text>
-                <Text style={styles.texto}>Permita que o algoritmo selecione desafios para você.</Text>
+                <Text style={styles.texto}>Permita que o aplicativo selecione desafios para você.</Text>
               </View>
             </LinearGradient>
-            <LinearGradient 
-              style={styles.caminho}
-              colors={['#BFECFF', '#6446DB']}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 0.5, y: 1 }}
-            >
-              {/* Lógica de Programação */}
-             
-              <Pressable style={{flexDirection: 'row', alignItems: 'center', gap: 20}} onPress={() => setSelectProg(!selectProg)}>
-                <View style={styles.caminhobutton}>
-                  <Icon source="code-braces" size={65} color="black"/>
-                </View>
-              <View style={styles.caminhotext}>
-                <Text style={styles.titulo}>Lógica de Programação</Text>
-                <Text style={styles.texto}>Explore desafios específicos.</Text>
-              </View>
-                <Icon source={selectProg ? "chevron-up" : "chevron-down"} size={20} color="black"/>
-              </Pressable>
-            </LinearGradient>
-            {selectProg && (
-              
-              <View style={styles.selectContainer}>
-                {categoriasProgDesbloqueadas
-                  .filter((categoria) => categoria !== 'RaciocinioLogico')
-                  .map((categoria) => (
-                    <LinearGradient
-                      colors={['#B5E2F5', '#8E79E3']}
-                      start={{ x: 0, y: 0 }}
-                      end={{ x: 0.5, y: 1 }}
-                      key={categoria}
-                      style={styles.selectItem}
-                    >
-                      <Pressable
-                      style={styles.selectButton}
-                      onPress={() => navigation.navigate("Questao", { usuario, categoria })}
-                      >
-                      <Text style={styles.selectText}>{categoriaMap[categoria]}</Text>
-                      <Icon source="chevron-right" size={20} color="black" />
-                    </Pressable>
-                    </LinearGradient>
-                  ))}
-              </View>
+            {usuario.tipo === "Programacao" && (
+              <>
+                <LinearGradient 
+                  style={styles.caminho}
+                  colors={['#BFECFF', '#6446DB']}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 0.5, y: 1 }}
+                >
+                  {/* Lógica de Programação */}
+                
+                  <Pressable style={{flexDirection: 'row', alignItems: 'center', gap: 20}} onPress={() => setSelectProg(!selectProg)}>
+                    <View style={styles.caminhobutton}>
+                      <Icon source="code-braces" size={65} color="black"/>
+                    </View>
+                  <View style={styles.caminhotext}>
+                    <Text style={styles.titulo}>Lógica de Programação</Text>
+                    <Text style={styles.texto}>Explore desafios específicos.</Text>
+                  </View>
+                    <Icon source={selectProg ? "chevron-up" : "chevron-down"} size={20} color="black"/>
+                  </Pressable>
+                </LinearGradient>
+                {selectProg && (
+                  
+                  <View style={styles.selectContainer}>
+                    {categoriasProgDesbloqueadas
+                      .filter((categoria) => categoria !== 'RaciocinioLogico')
+                      .map((categoria) => (
+                        <LinearGradient
+                          colors={['#B5E2F5', '#8E79E3']}
+                          start={{ x: 0, y: 0 }}
+                          end={{ x: 0.5, y: 1 }}
+                          key={categoria}
+                          style={styles.selectItem}
+                        >
+                          <Pressable
+                          style={styles.selectButton}
+                          onPress={() => navigation.navigate("Questao", { usuario, categoria })}
+                          >
+                          <Text style={styles.selectText}>{categoriaMap[categoria]}</Text>
+                          <Icon source="chevron-right" size={20} color="black" />
+                        </Pressable>
+                        </LinearGradient>
+                      ))}
+                  </View>
+                )}
+              </>
             )}
             <LinearGradient 
               style={styles.caminho}
@@ -213,8 +217,8 @@ const styles = StyleSheet.create({
   },
   caminhos: {
     flexDirection: 'column', 
-    alignItems: 'center',  
-    paddingVertical: 20, 
+    alignItems: 'center', 
+    justifyContent: 'center',
     gap: 25,
     flexGrow: 1,
   },
