@@ -75,7 +75,7 @@ export default function Ranking({ navigation, usuario }) {
   }, []);
   return (
     <View style={styles.container}>
-      <Logo />
+      <Logo cor = "#6446db"/>
       <View style={{ flex: 1 }}>
         <LinearGradient
           style={styles.caminho}

@@ -57,7 +57,7 @@ export default function Inicio({ navigation, usuario }) {
 
   return(
     <View style={styles.container}>
-          <Logo />
+          <Logo cor="#6446db" />
           <ScrollView contentContainerStyle={styles.caminhos}>
             <LinearGradient 
               style={styles.caminho}

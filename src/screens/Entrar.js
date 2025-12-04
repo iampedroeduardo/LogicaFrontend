@@ -53,7 +53,7 @@ export default function Entrar({navigation}) {
 
       return (
     <View style={styles.container}>
-      <Logo />
+      <Logo cor="#6446db"/>
       <View style={{ margin: 20, justifyContent: "center", height: "75%" }}>
         <Text style={{ alignSelf: "center", fontSize: 19 }}>
             Dados de Login

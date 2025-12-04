@@ -71,7 +71,7 @@ export default function Perfil({ navigation, usuario }) {
   return (
     <View style={styles.container}>
       <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
-        <Logo />
+        <Logo cor = "#6446db"/>
         <Pressable
           onPress={() => {
             setVisible(true);

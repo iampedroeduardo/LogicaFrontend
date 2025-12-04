@@ -1,7 +1,7 @@
 import { StyleSheet, Text, View, Image } from 'react-native'
 import { useFonts } from 'expo-font'
 
-export default function Logo({ImagemEstilo, textoEstilo}){
+export default function Logo({ImagemEstilo, textoEstilo, cor}){
     const [fontsLoaded, fontError] = useFonts({
         'Quicksand-Bold': require('../../assets/fonts/Quicksand-Bold.ttf'),
       });
@@ -12,7 +12,7 @@ export default function Logo({ImagemEstilo, textoEstilo}){
             
             <View style={styles.espacamento}>
                 <Image source={require('../../assets/images/axolote_png.png')} style={[styles.logoImage, ImagemEstilo]}></Image>
-              <Text style={[styles.logoText, textoEstilo]}>Lógica</Text><Text style={[styles.logoText, textoEstilo, {color: '#6446db'}]}>++</Text>
+              <Text style={[styles.logoText, textoEstilo]}>Lógica</Text><Text style={[styles.logoText, textoEstilo, {color: cor}]}>++</Text>
             </View>
     )
 }

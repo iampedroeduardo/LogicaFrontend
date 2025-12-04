@@ -5,7 +5,7 @@
     "version": "1.0.0",
     "orientation": "portrait",
     "extra": {
-      "apiUrl": "https://strain-fri-handling-beast.trycloudflare.com"
+      "apiUrl": "https://routes-prompt-heating-showed.trycloudflare.com"
     },
     "icon": "./assets/images/icon.png",
     "scheme": "logicamaismais",

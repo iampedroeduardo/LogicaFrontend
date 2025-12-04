@@ -20,7 +20,7 @@ export default function Opcoes({
     },
     opcaoContainer: {
       width: "100%",
-      height: 60,
+      height: 70,
       borderRadius: 20,
       shadowColor: "#000",
       shadowOffset: {
@@ -42,7 +42,7 @@ export default function Opcoes({
       gap: 10,
     },
     letter: {
-      width: 60,
+      width: 70,
       height: "100%",
       display: "flex",
       justifyContent: "center",
@@ -51,7 +51,7 @@ export default function Opcoes({
     },
     opcaoText: {
       fontSize: 18,
-      width: "80%"
+      width: "79%"
     },
   });
 

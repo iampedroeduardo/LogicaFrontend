@@ -241,7 +241,7 @@ export default function Cadastro({ navigation }) {
   const [showConfirmarSenha, setShowConfirmarSenha] = useState(false);
   return (
     <View style={styles.container}>
-      <Logo />
+      <Logo cor="#6446db"/>
       <View style={{ flex: 1, marginHorizontal: 20, marginTop: 20 }}>
         <KeyboardAvoidingView
           style={{ flex: 1 }}

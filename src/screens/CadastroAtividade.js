@@ -403,6 +403,7 @@ export default function CadastroAtividade({ navigation }) {
         <Logo
           ImagemEstilo={{ width: 40, height: 32 }}
           textoEstilo={{ fontSize: 22, color: "white" }}
+          cor="#bfecff"
         />
         <Menu
           visible={visible}

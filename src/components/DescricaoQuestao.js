@@ -42,9 +42,9 @@ export default function DescricaoQuestao({ questao, modo }) {
     },
     pergunta: {
       width: "100%",
-      height: "10%",
+      height: "17%",
       display: "flex",
-      justifyContent: "center",
+      paddingTop: 5,
       paddingHorizontal: 10,
     },
     perguntaText: {

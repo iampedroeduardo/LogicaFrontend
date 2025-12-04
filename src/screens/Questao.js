@@ -191,7 +191,7 @@ export default function Questao({ navigation, route }) {
     return (
       <View style={styles.container}>
         <View style={styles.header}>
-          <Logo />
+          <Logo cor="#6446db"/>
           <Pressable
             style={styles.xButton}
             onPress={async () => {
@@ -216,7 +216,7 @@ export default function Questao({ navigation, route }) {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Logo />
+        <Logo cor="#6446db"/>
         <Pressable
           style={styles.xButton}
           onPress={async () => {

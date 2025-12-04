@@ -793,7 +793,7 @@ export default function Window({
             )}
             {window.type == "multiplaEscolha" && (
               <TextInput
-                maxLength={30}
+                maxLength={60}
                 placeholder="Escreva a pergunta da questão aqui..."
                 value={window.pergunta}
                 style={{
@@ -1588,7 +1588,7 @@ export default function Window({
                           onChangeText={(text) =>
                             updateWindow({ ...window, opcao1: text })
                           }
-                          maxLength={60}
+                          maxLength={90}
                           style={{
                             height: 40,
                             width: 230,
@@ -1654,7 +1654,7 @@ export default function Window({
                           onChangeText={(text) =>
                             updateWindow({ ...window, opcao2: text })
                           }
-                          maxLength={60}
+                          maxLength={90}
                           style={{
                             height: 40,
                             width: 230,
@@ -1720,7 +1720,7 @@ export default function Window({
                           onChangeText={(text) =>
                             updateWindow({ ...window, opcao3: text })
                           }
-                          maxLength={60}
+                          maxLength={90}
                           style={{
                             height: 40,
                             width: 230,
@@ -1786,7 +1786,7 @@ export default function Window({
                           onChangeText={(text) =>
                             updateWindow({ ...window, opcao4: text })
                           }
-                          maxLength={60}
+                          maxLength={90}
                           style={{
                             height: 40,
                             width: 230,
