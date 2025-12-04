@@ -3,6 +3,8 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useEffect, useState } from "react";
 import { useRoute } from "@react-navigation/native";
 import {
+  KeyboardAvoidingView,
+  Platform,
   ScrollView,
   StyleSheet,
   Text,
@@ -69,12 +71,7 @@ export default function Cadastro({ navigation }) {
           tipo: tipo,
         })
         .then(async (response) => {
-          await AsyncStorage.setItem("usuario", JSON.stringify(response.data));
-          if (Platform.OS === "web") {
-            navigation.navigate("CadastroAtividade");
-          } else {
-            navigation.navigate("Home");
-          }
+          navigation.navigate("PaginaInicial")
         })
         .catch((error) => {
           console.log(error);
@@ -246,6 +243,11 @@ export default function Cadastro({ navigation }) {
     <View style={styles.container}>
       <Logo />
       <View style={{ flex: 1, marginHorizontal: 20, marginTop: 20 }}>
+        <KeyboardAvoidingView
+          style={{ flex: 1 }}
+          behavior={Platform.OS === "ios" ? "padding" : "height"}
+          keyboardVerticalOffset={Platform.OS === "ios" ? 130 : 130}
+        >
           <ScrollView
             showsVerticalScrollIndicator={false}
             keyboardShouldPersistTaps="handled"
@@ -520,7 +522,7 @@ export default function Cadastro({ navigation }) {
             {!usuarioArmazenado && (
               <>
                 <DropDownPicker
-                  style={styles.input}
+                  style={{...styles.input, marginBottom: tipo && tipo.length > 0 ? 0 : 30}}
                   open={openTipo}
                   value={tipo}
                   items={tipos}
@@ -555,17 +557,25 @@ export default function Cadastro({ navigation }) {
                   )}
                   {tipo === "RaciocinioLogico" && (
                     <Text style={styles.infoText}>
-                      O tipo "Raciocínio Lógico" aborda quebra-cabeças, sequências
-                      lógicas e problemas que testam sua capacidade de dedução. 🧠
+                      O tipo "Raciocínio Lógico" aborda quebra-cabeças,
+                      sequências lógicas e problemas que testam sua capacidade
+                      de dedução. 🧠
                     </Text>
                   )}
                 </View>
               </>
             )}
-
           </ScrollView>
+        </KeyboardAvoidingView>
       </View>
-      <View style={{ flexDirection: "row", justifyContent: "center", gap: 35, paddingVertical: 20 }}>
+      <View
+        style={{
+          flexDirection: "row",
+          justifyContent: "center",
+          gap: 35,
+          paddingVertical: 20,
+        }}
+      >
         <Button
           mode="elevated"
           textColor="black"
@@ -653,7 +663,17 @@ export default function Cadastro({ navigation }) {
                 textColor="white"
                 buttonColor="#6446db"
                 style={{ width: 150, alignSelf: "center" }}
-                onPress={()=>{setDialogVisible(false); setImagemKey(`${cor.toLowerCase()}_${acessorio.toLowerCase()}`); setImagemSource(imagensPerfil[`${cor.toLowerCase()}_${acessorio.toLowerCase()}`]);}}
+                onPress={() => {
+                  setDialogVisible(false);
+                  setImagemKey(
+                    `${cor.toLowerCase()}_${acessorio.toLowerCase()}`
+                  );
+                  setImagemSource(
+                    imagensPerfil[
+                      `${cor.toLowerCase()}_${acessorio.toLowerCase()}`
+                    ]
+                  );
+                }}
               >
                 Salvar
               </Button>
@@ -700,12 +720,11 @@ const styles = StyleSheet.create({
     fontSize: 13,
     textColor: "red",
   },
-<<<<<<< HEAD
   infoText: {
     fontSize: 14,
     color: "#666",
     fontStyle: "italic",
-=======
+  },
   perfil: {
     width: 90,
     height: 92,
@@ -756,6 +775,5 @@ const styles = StyleSheet.create({
     flexWrap: "wrap",
     gap: 5,
     width: "100%",
->>>>>>> 7fe99fefb169a5bf222203c0b94919aa738054a9
   },
 });

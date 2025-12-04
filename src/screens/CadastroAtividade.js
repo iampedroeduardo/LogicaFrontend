@@ -23,6 +23,7 @@ import {
 import instance from "../axios.js";
 import Logo from "../components/Logo.js";
 import Window from "../components/Window.js";
+import Constants from "expo-constants";
 
 const imagensPerfil = {
   preto_none: require("../../assets/images/perfil_preto_none.png"),
@@ -251,7 +252,8 @@ export default function CadastroAtividade({ navigation }) {
           ? question.tipo
           : type === "multiplaEscolha" ? "RaciocinioLogico" : "",
       status: question ? question.status : "",
-      novo: !question
+      novo: !question,
+      imagem: question && question.descricao.length === 0 ? `${Constants.expoConfig?.extra?.apiUrl}/${question.foto.replaceAll("\\","/")}` : null
     };
     console.log(newWindow);
     setWindows((prev) => [...prev, newWindow]);
@@ -301,7 +303,7 @@ export default function CadastroAtividade({ navigation }) {
               window.gabarito.trim().length === 0 ||
               (window.descricao.trim().length === 0 && !window.imagem) ||
               window.categoria.trim().length === 0 ||
-              ((window.tipo.trim().length === 0 ||
+              ((
                 window.rankId === null ||
                 window.nivel === null) &&
                 usuario.adm))) ||
@@ -337,51 +339,59 @@ export default function CadastroAtividade({ navigation }) {
     // 1. Criar um objeto FormData para enviar os dados
     const formData = new FormData();
 
-    // 2. Adicionar os dados das questões como uma string JSON
-    // O backend precisará fazer o parse desta string para obter o objeto.
-    formData.append("questoes", JSON.stringify(windows));
-
-    // 3. Iterar sobre as questões para encontrar e adicionar as imagens
-    windows.forEach((q, index) => {
-      // Verifica se a questão é de múltipla escolha e tem uma imagem local
-      if (q.type === "multiplaEscolha" && q.imagem && q.imagem.startsWith('file://')) {
-        const uri = q.imagem;
-        // Extrai o nome e o tipo do arquivo a partir da URI
-        const uriParts = uri.split('.');
-        const fileType = uriParts[uriParts.length - 1];
-        const fileName = uri.split('/').pop();
-
-        // Adiciona o arquivo ao FormData.
-        // A chave 'imagem_0', 'imagem_1', etc., ajuda o backend a associar a imagem à questão correta.
-        formData.append(`imagem_${index}`, {
-          uri,
-          name: fileName,
-          type: `image/${fileType}`,
-        });
+    // 2. Criar uma cópia das questões para poder modificá-las antes de enviar.
+    const questoesParaEnvio = JSON.parse(JSON.stringify(windows));
+ 
+    // 3. Iterar sobre as questões para encontrar, processar e adicionar as imagens ao FormData.
+    for (const [index, q] of questoesParaEnvio.entries()) {
+      const uri = q.imagem;
+      // Verifica se a questão é de múltipla escolha e tem uma imagem local para upload
+      if (q.type === "multiplaEscolha" && uri && (uri.startsWith('file://') || uri.startsWith('blob:'))) {
+        let fileName;
+        if (uri.startsWith('blob:')) {
+          // Para web: busca o blob e o anexa
+          const response = await fetch(uri);
+          const blob = await response.blob();
+          fileName = `imagem-${q.id}.${blob.type.split('/')[1] || 'jpg'}`;
+          formData.append(`imagem_${index}`, blob, fileName);
+          q.imagem = `imagem_${index}`
+        } else {
+          // Para nativo (file://): anexa como antes
+          const uriParts = uri.split('.');
+          const fileType = uriParts[uriParts.length - 1];
+          fileName = uri.split('/').pop();
+ 
+          formData.append(`imagem_${index}`, {
+            uri,
+            name: fileName,
+            type: `image/${fileType}`,
+          });
+          q.imagem = `imagem_${index}`
+        }
       }
-    });
-
-    instance
-      .post(
+    }
+    // 5. Adicionar os dados das questões (agora com os nomes de arquivo corretos) como uma string JSON.
+    formData.append("questoes", JSON.stringify(questoesParaEnvio));
+ 
+    try {
+      const response = await instance.post(
         "/atividades/cadastro",
         formData, // 4. Enviar o FormData em vez do JSON
         {
           headers: {
             Authorization: `Bearer ${usuario.token}`,
-            // 5. O cabeçalho 'Content-Type' é definido como 'multipart/form-data' automaticamente pelo axios
+            // O cabeçalho 'Content-Type' é definido como 'multipart/form-data' automaticamente pelo axios
           },
         }
-      )
-      .then((response) => {
-        setSnackbarVisible(true);
-        setMensagem("Questões salvas com sucesso!");
-        setWindows([]);
-      })
-      .catch((error) => {
-        console.error("Erro ao salvar questões:", error.response ? error.response.data : error.message);
-        setSnackbarVisible(true);
-        setMensagem("Erro ao salvar questões. Tente novamente.");
-      });
+      );
+      setSnackbarVisible(true);
+      setMensagem("Questões salvas com sucesso!");
+      setWindows([]);
+    } catch (error) {
+      console.error("Erro ao salvar questões:", error.response ? error.response.data : error.message);
+      setSnackbarVisible(true);
+      setMensagem("Erro ao salvar questões. Tente novamente.");
+    }
   }
 
   const imagemKey = `${usuario.cor.toLowerCase()}_${usuario.acessorio.toLowerCase()}`;

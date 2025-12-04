@@ -1,8 +1,8 @@
 import axios from "axios";
+import Constants from 'expo-constants';
 
 const instance = axios.create({
-  baseURL: 'https://173bb9571ded.ngrok-free.app/api',
-  headers: {'ngrok-skip-browser-warning': 'true'}
+  baseURL: `${Constants.expoConfig?.extra?.apiUrl}/api`,
 });
 
 export default instance;

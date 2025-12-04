@@ -1,5 +1,6 @@
+import Constants from 'expo-constants';
 import { LinearGradient } from "expo-linear-gradient";
-import { ScrollView, StyleSheet, Text, View } from "react-native";
+import { Image, ScrollView, StyleSheet, Text, View } from "react-native";
 
 export default function DescricaoQuestao({ questao, modo }) {
   const styles = StyleSheet.create({
@@ -68,9 +69,15 @@ export default function DescricaoQuestao({ questao, modo }) {
         contentContainerStyle={styles.divContent}
       >
         <Text style={styles.perguntaText}>{questao.nome}</Text>
-        <Text style={styles.descricaoText}>
-          {modo === "questao" ? questao.descricao : questao.gabarito}
-        </Text>
+        
+        {questao.tipo === "multiplaEscolha" ? (modo === "questao" ? (questao.descricao.length === 0 ? (<Image source={{uri: `${Constants.expoConfig?.extra?.apiUrl}/${questao.foto.replaceAll("\\","/")}`}} style={{width: "100%", aspectRatio: 1, borderRadius: 15}}/>) : (<Text style={styles.descricaoText}>
+          {questao.descricao}
+        </Text>)) : (<Text style={styles.descricaoText}>
+          {questao.gabarito}
+        </Text>)) : (<Text style={styles.descricaoText}>
+          {questao.descricao}
+        </Text>)}
+        
       </ScrollView>
       <View style={styles.pergunta}>
         <Text style={styles.perguntaText}>{questao.tipo === "multiplaEscolha" ? questao.pergunta : questao.tipoErroLacuna === "Erro" ? "Encontre o erro" : "Complete as lacunas"}</Text>

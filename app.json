@@ -4,6 +4,9 @@
     "slug": "logica_mais_mais",
     "version": "1.0.0",
     "orientation": "portrait",
+    "extra": {
+      "apiUrl": "https://strain-fri-handling-beast.trycloudflare.com"
+    },
     "icon": "./assets/images/icon.png",
     "scheme": "logicamaismais",
     "userInterfaceStyle": "automatic",

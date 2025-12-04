@@ -854,6 +854,7 @@ export default function Window({
                         setOpenRank(false);
                       }}
                       onSelectItem={(item) => {
+
                         const rankSelecionado = ranks.find(
                           (r) => r.categoria === item.value
                         );
@@ -1417,7 +1418,7 @@ export default function Window({
                         updateWindow({
                           ...window,
                           categoria: item.value,
-                          rankId: rankSelecionado ? rankSelecionado.id : null,
+                          rankId: rankSelecionado ? rankSelecionado.id : 1,
                         });
                       }}
                       placeholder="Selecione uma categoria..."
