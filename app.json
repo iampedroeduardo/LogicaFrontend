@@ -5,7 +5,11 @@
     "version": "1.0.0",
     "orientation": "portrait",
     "extra": {
+<<<<<<< HEAD
       "apiUrl": "https://governmental-rapids-particles-massage.trycloudflare.com"
+=======
+      "apiUrl": "https://very-warnings-kingdom-overview.trycloudflare.com"
+>>>>>>> 65ec9a56a8a937f65f5a25be3e1d285d7d134882
     },
     "icon": "./assets/images/icon.png",
     "scheme": "logicamaismais",

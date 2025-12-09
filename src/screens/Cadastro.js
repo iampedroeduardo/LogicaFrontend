@@ -19,6 +19,8 @@ import DropDownPicker from "react-native-dropdown-picker";
 import { Button, HelperText, Icon, Portal, Dialog } from "react-native-paper";
 import instance from "../axios.js";
 import Logo from "../components/Logo.js";
+import { ActivityIndicator } from "react-native";
+
 
 const imagensPerfil = {
   preto_none: require("../../assets/images/perfil_preto_none.png"),
@@ -60,6 +62,8 @@ export default function Cadastro({ navigation }) {
     setHelperGenero(true);
     if (!hasErrors()) {
       const dataNascimento = new Date(Number(ano), Number(mes), Number(dia));
+      setDialogCadastroVisible(true);
+      setEnviando(true);
       instance
         .post("/cadastro", {
           nome: nome.trim(),
@@ -71,7 +75,7 @@ export default function Cadastro({ navigation }) {
           tipo: tipo,
         })
         .then(async (response) => {
-          navigation.navigate("PaginaInicial")
+          setEnviando(false);
         })
         .catch((error) => {
           console.log(error);
@@ -82,6 +86,8 @@ export default function Cadastro({ navigation }) {
     setHelperGenero(true);
     if (!hasErrors()) {
       const dataNascimento = new Date(Number(ano), Number(mes), Number(dia));
+      setDialogCadastroVisible(true);
+      setEnviando(true);
       instance
         .put("/editar", {
           id: usuarioArmazenado.id,
@@ -96,6 +102,8 @@ export default function Cadastro({ navigation }) {
         })
         .then(async (response) => {
           await AsyncStorage.setItem("usuario", JSON.stringify(response.data));
+          setDialogCadastroVisible(false);
+          setEnviando(false);
           navigation.navigate("Home");
         })
         .catch((error) => {
@@ -187,6 +195,8 @@ export default function Cadastro({ navigation }) {
     imagensPerfil[imagemKey] || imagensPerfil["preto_none"]
   );
   const [dialogVisible, setDialogVisible] = useState(false);
+  const [dialogCadastroVisible, setDialogCadastroVisible] = useState(false);
+  const [enviando, setEnviando] = useState(false);
   const [genero, setGenero] = useState(
     usuarioArmazenado ? usuarioArmazenado.genero : null
   );
@@ -241,7 +251,7 @@ export default function Cadastro({ navigation }) {
   const [showConfirmarSenha, setShowConfirmarSenha] = useState(false);
   return (
     <View style={styles.container}>
-      <Logo cor="#6446db"/>
+      <Logo cor="#6446db" />
       <View style={{ flex: 1, marginHorizontal: 20, marginTop: 20 }}>
         <KeyboardAvoidingView
           style={{ flex: 1 }}
@@ -522,7 +532,10 @@ export default function Cadastro({ navigation }) {
             {!usuarioArmazenado && (
               <>
                 <DropDownPicker
-                  style={{...styles.input, marginBottom: tipo && tipo.length > 0 ? 0 : 30}}
+                  style={{
+                    ...styles.input,
+                    marginBottom: tipo && tipo.length > 0 ? 0 : 30,
+                  }}
                   open={openTipo}
                   value={tipo}
                   items={tipos}
@@ -595,8 +608,9 @@ export default function Cadastro({ navigation }) {
           Salvar
         </Button>
       </View>
-      {usuarioArmazenado && (
-        <Portal>
+
+      <Portal>
+        {usuarioArmazenado && (
           <Dialog
             visible={dialogVisible}
             onDismiss={() => {
@@ -679,8 +693,49 @@ export default function Cadastro({ navigation }) {
               </Button>
             </View>
           </Dialog>
-        </Portal>
-      )}
+        )}
+        <Dialog
+          visible={dialogCadastroVisible}
+          onDismiss={() => {}}
+          dismissable={false}
+          style={styles.dialogCadastro}
+        >
+          <View style={styles.dialogCadastroContent}>
+            {usuarioArmazenado && enviando ? (
+              <Text style={styles.dialogCadastroText}>Editando cadastro...</Text>
+            ) : enviando ? (
+              <Text style={styles.dialogCadastroText}>Cadastrando usuário...</Text>
+            ) : (
+              <Text style={styles.dialogCadastroText}>
+                Usuário cadastrado! Foi enviado um email de confirmação. Após
+                confirmar você já pode fazer login.
+              </Text>
+            )}
+            <View
+              style={{
+                flexDirection: "row",
+                justifyContent: "center",
+                alignItems: "center",
+                gap: 5,
+              }}
+            >
+              {enviando ? (
+                <ActivityIndicator size={30} color="#6446db" />
+              ) : (
+                <Button
+                  mode="elevated"
+                  textColor="black"
+                  buttonColor="#bfecff"
+                  style={{ width: 150 }}
+                  onPress={() => {navigation.navigate("Entrar"); setDialogCadastroVisible(false)}}
+                >
+                  Fazer login
+                </Button>
+              )}
+            </View>
+          </View>
+        </Dialog>
+      </Portal>
     </View>
   );
 }
@@ -775,5 +830,41 @@ const styles = StyleSheet.create({
     flexWrap: "wrap",
     gap: 5,
     width: "100%",
+  },
+  dialogCadastro: {
+    backgroundColor: "#6446DB",
+    alignSelf: "center",
+    justifyContent: "center",
+    // alignItems: "center",
+    borderRadius: 15,
+    width: 280,
+    height: 280,
+    paddingHorizontal: 10,
+    paddingBottom: 25,
+  },
+  dialogCadastroContent: {
+    backgroundColor: "white",
+    width: "100%",
+    height: "100%",
+    borderRadius: 15,
+    display: "flex",
+    flexDirection: "column",
+    justifyContent: "center",
+    alignItems: "center",
+    gap: 20,
+    padding: 15,
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
+  },
+  dialogCadastroText: {
+    fontSize: 18,
+    textAlign: "center",
+    fontWeight: "bold",
   },
 });
