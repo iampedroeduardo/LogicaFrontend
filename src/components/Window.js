@@ -483,7 +483,7 @@ export default function Window({
                           : { color: "white" }
                       }
                     >
-                      Gabarito
+                      Explicação
                     </Text>
                   </Pressable>
                 </View>
@@ -577,7 +577,7 @@ export default function Window({
                   <TextInput
                     multiline={true}
                     numberOfLines={30}
-                    placeholder="Escreva o gabarito da questão aqui..."
+                    placeholder="Escreva a explicação da questão aqui..."
                     style={{
                       height: 360,
                       width: 280,
@@ -758,11 +758,13 @@ export default function Window({
                     </Text>
                   </Pressable>
                 </View>
-                <View style={styles.questionList}>
+                <ScrollView
+                  style={styles.questionList}
+                  contentContainerStyle={{ gap: 10 }} >
                   {questions.length > 0 ? (
                     questions.map((x) => {
                       return (
-                        <View key={x.id} style={styles.questionItem}>
+                        <View key={`${x.id}_${x.type}`} style={styles.questionItem}>
                           <Text style={styles.questionName}>{x.nome}</Text>
                           <View style={styles.questionActions}>
                             <Pressable
@@ -785,10 +787,10 @@ export default function Window({
                     })
                   ) : (
                     <View>
-                      <Text>Nenhuma questão encontrada</Text>
+                      <Text style={{ textAlign: "center"}}>Nenhuma questão encontrada</Text>
                     </View>
                   )}
-                </View>
+                </ScrollView>
               </View>
             )}
             {window.type == "multiplaEscolha" && (
@@ -929,7 +931,7 @@ export default function Window({
                       <TextInput
                         multiline={true}
                         numberOfLines={10}
-                        placeholder="Escreva aqui a descrição do algoritmo..."
+                        placeholder="Escreva aqui a descrição do código..."
                         style={{
                           height: 137.6,
                           width: 230,
@@ -1611,7 +1613,7 @@ export default function Window({
                             updateWindow({ ...window, opcaoCorreta: "a" })
                           }
                         >
-                          <Icon source="check" size={20} color="black" />
+                          <Icon source="check" size={20} color="white" />
                         </Pressable>
                       ) : window.opcaoCorreta === "a" ? (
                         <Pressable
@@ -1620,7 +1622,7 @@ export default function Window({
                             updateWindow({ ...window, opcaoCorreta: "" })
                           }
                         >
-                          <Icon source="close" size={20} color="black" />
+                          <Icon source="close" size={20} color="white" />
                         </Pressable>
                       ) : (
                         <></>
@@ -1677,7 +1679,7 @@ export default function Window({
                             updateWindow({ ...window, opcaoCorreta: "b" })
                           }
                         >
-                          <Icon source="check" size={20} color="black" />
+                          <Icon source="check" size={20} color="white" />
                         </Pressable>
                       ) : window.opcaoCorreta === "b" ? (
                         <Pressable
@@ -1686,7 +1688,7 @@ export default function Window({
                             updateWindow({ ...window, opcaoCorreta: "" })
                           }
                         >
-                          <Icon source="close" size={20} color="black" />
+                          <Icon source="close" size={20} color="white" />
                         </Pressable>
                       ) : (
                         <></>
@@ -1743,7 +1745,7 @@ export default function Window({
                             updateWindow({ ...window, opcaoCorreta: "c" })
                           }
                         >
-                          <Icon source="check" size={20} color="black" />
+                          <Icon source="check" size={20} color="white" />
                         </Pressable>
                       ) : window.opcaoCorreta === "c" ? (
                         <Pressable
@@ -1752,7 +1754,7 @@ export default function Window({
                             updateWindow({ ...window, opcaoCorreta: "" })
                           }
                         >
-                          <Icon source="close" size={20} color="black" />
+                          <Icon source="close" size={20} color="white" />
                         </Pressable>
                       ) : (
                         <></>
@@ -1809,7 +1811,7 @@ export default function Window({
                             updateWindow({ ...window, opcaoCorreta: "d" })
                           }
                         >
-                          <Icon source="check" size={20} color="black" />
+                          <Icon source="check" size={20} color="white" />
                         </Pressable>
                       ) : window.opcaoCorreta === "d" ? (
                         <Pressable
@@ -1818,7 +1820,7 @@ export default function Window({
                             updateWindow({ ...window, opcaoCorreta: "" })
                           }
                         >
-                          <Icon source="close" size={20} color="black" />
+                          <Icon source="close" size={20} color="white" />
                         </Pressable>
                       ) : (
                         <></>
@@ -2190,11 +2192,9 @@ const styles = StyleSheet.create({
   },
   questionList: {
     display: "flex",
-    display: "column",
-    gap: 10,
-    justifyContent: "center",
-    alignItems: "center",
+    flexDirection: "column",
     width: "100%",
+    flex: 1, // Garante que a ScrollView ocupe o espaço disponível
   },
   questionItem: {
     display: "flex",

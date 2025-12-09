@@ -271,7 +271,7 @@ export default function CadastroAtividade({ navigation }) {
 
   function getWindowTitle(type) {
     const titles = {
-      codigo: "Algoritmo",
+      codigo: "Código",
       multiplaEscolha: "Múltipla Escolha",
       minhasQuestoes: "Minhas Questões",
     };
@@ -561,7 +561,7 @@ export default function CadastroAtividade({ navigation }) {
               <View style={styles.iconButton}>
                 <Icon source="check" size={20} color="black" />
               </View>
-              <Text>Salvar</Text>
+              <Text style={{color: "white"}}>Salvar</Text>
             </Pressable>
           )}
         </View>
