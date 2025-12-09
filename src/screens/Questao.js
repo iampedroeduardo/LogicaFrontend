@@ -126,7 +126,6 @@ export default function Questao({ navigation, route }) {
         mudouNivel = false,
         ganhouXp = false,
         perdeuXp = false;
-
       if (response.data.rank.id !== usuarioAtual.rank.id) {
         mudouRank = true;
         setSubiuRank(mudouRank);

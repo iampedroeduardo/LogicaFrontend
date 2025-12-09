@@ -29,8 +29,7 @@ export default function PaginaInicial({navigation}) {
       </View>
       
       <View style={{width: '100%', alignItems: 'center', marginTop: 300, gap:10}}>
-        <Button mode='elevated' icon='email' textColor='black' buttonColor='white' style={{width: '80%', maxWidth: 400}} onPress={() => navigation.navigate("Cadastro")}>Continuar com email</Button>
-        <Button mode='elevated' icon='google' textColor='black' buttonColor='white' style={{width: '80%', maxWidth: 400}} onPress={() => console.log('Email pressed')}>Continuar com Google</Button>
+        <Button mode='elevated' icon='email' textColor='black' buttonColor='white' style={{width: '80%', maxWidth: 400}} onPress={() => navigation.navigate("Cadastro")}>Cadastrar-se com email</Button>
         <View style={styles.espacamento}>
           <Text>Já tem uma conta?</Text>
           <Text style={styles.underlined} onPress={() => navigation.navigate("Entrar")}>Entre</Text>
