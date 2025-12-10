@@ -5,7 +5,6 @@ import Logo from "../components/Logo";
 import { useEffect, useState } from 'react';
 import instance from '../axios';
 
-
 export default function Inicio({ navigation, usuario }) {
   const [selectProg, setSelectProg] = useState(false);
   const [selectRacio, setSelectRacio] = useState(false);

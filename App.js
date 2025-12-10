@@ -13,6 +13,9 @@ import PaginaInicial from "./src/screens/PaginaInicial";
 import Teste from "./src/screens/Teste";
 import Questao from "./src/screens/Questao";
 import { Platform } from "react-native";
+import RecuperacaoSenha from "./src/screens/RecuperacaoSenha";
+import RecuperacaoNovaSenha from "./src/screens/RecuperacaoNovaSenha";
+import AlteracaoSenha from "./src/screens/AlteracaoSenha";
 
 
 const Stack = createNativeStackNavigator();
@@ -96,6 +99,9 @@ export default function AppNavigator() {
             component={Questao}
             options={{ headerShown: false }}
           />
+          <Stack.Screen name="RecuperacaoSenha" component={RecuperacaoSenha} options={{ headerShown: false }}/>
+          <Stack.Screen name="RecuperacaoNovaSenha" component={RecuperacaoNovaSenha} options={{ headerShown: false }}/>
+          <Stack.Screen name="AlteracaoSenha" component={AlteracaoSenha} options={{ headerShown: false }}/>
         </Stack.Navigator>
       </NavigationContainer>
     </PaperProvider>
