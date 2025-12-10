@@ -466,7 +466,7 @@ export default function Cadastro({ navigation }) {
               Preencha um nome de usuário válido
             </HelperText>
 
-            {!usuarioArmazenado && (
+            {!usuarioArmazenado ? (
               <View>
                 <Text style={styles.label}>Senha:</Text>
                 <View style={{ flexDirection: "row", alignItems: "center" }}>
@@ -527,6 +527,18 @@ export default function Cadastro({ navigation }) {
                 >
                   A senha não é igual
                 </HelperText>
+              </View>
+            ) : (
+              <View style={{ alignItems: "center", marginVertical: 10 }}>
+                <Button
+                  mode="elevated"
+                  textColor="white"
+                  buttonColor="#6446db"
+                  style={{ width: "95%", maxWidth: 380 }}
+                  onPress={() => navigation.navigate("AlteracaoSenha", { id: usuarioArmazenado.id })}
+                >
+                  Alterar Senha
+                </Button>
               </View>
             )}
             {!usuarioArmazenado && (
