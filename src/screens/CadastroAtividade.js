@@ -344,6 +344,13 @@ export default function CadastroAtividade({ navigation }) {
  
     // 3. Iterar sobre as questões para encontrar, processar e adicionar as imagens ao FormData.
     for (const [index, q] of questoesParaEnvio.entries()) {
+      // Se o usuário não for admin e o rankId for null, remove a propriedade
+      // para evitar enviar um valor nulo para o backend.
+      if (!usuario.adm && q.rankId === null) {
+        delete q.rankId;
+        delete q.nivel; // O nível também está associado ao rank
+      }
+
       const uri = q.imagem;
       // Verifica se a questão é de múltipla escolha e tem uma imagem local para upload
       if (q.type === "multiplaEscolha" && uri && (uri.startsWith('file://') || uri.startsWith('blob:'))) {
@@ -561,7 +568,7 @@ export default function CadastroAtividade({ navigation }) {
               <View style={styles.iconButton}>
                 <Icon source="check" size={20} color="black" />
               </View>
-              <Text style={{color: "white"}}>Salvar</Text>
+              <Text style={{color: "black"}}>Salvar</Text>
             </Pressable>
           )}
         </View>
@@ -651,7 +658,7 @@ export default function CadastroAtividade({ navigation }) {
               </Button>
               <Button
                 mode="elevated"
-                textColor="black"
+                textColor="white"
                 buttonColor="#6446db"
                 style={{ minWidth: 100 }}
                 onPress={() => {

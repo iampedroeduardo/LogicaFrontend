@@ -451,6 +451,7 @@ const styles = StyleSheet.create({
     width: "100%",
     justifyContent: "center",
     alignItems: "center",
+    marginTop: 15 //vai afetar o pedro?
   },
   dialog: {
     backgroundColor: "#6446DB",

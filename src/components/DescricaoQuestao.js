@@ -44,6 +44,8 @@ export default function DescricaoQuestao({ questao, modo }) {
       width: "100%",
       height: "17%",
       display: "flex",
+      flexDirection: 'row',
+      flexWrap: 'wrap', // Texto pergunta
       paddingTop: 5,
       paddingHorizontal: 10,
     },
