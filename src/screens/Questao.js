@@ -27,6 +27,7 @@ export default function Questao({ navigation, route }) {
   const [opcaoSelecionada, setOpcaoSelecionada] = useState(null);
   const [questao, setQuestao] = useState(null);
   const [dialogVisible, setDialogVisible] = useState(false);
+  const [dialogCarregandoVisible, setDialogCarregandoVisible] = useState(false);
   const [subiuRank, setSubiuRank] = useState(false);
   const [subiuNivel, setSubiuNivel] = useState(false);
   const [subiuXp, setSubiuXp] = useState(false);
@@ -37,6 +38,7 @@ export default function Questao({ navigation, route }) {
   const [loading, setLoading] = useState(true);
   async function trilha(isPrimeiraQuestao, isUltimaQuestao) {
     try {
+      setDialogCarregandoVisible(true);
       const response = await instance.post(
         "/atividades/trilha",
         {
@@ -80,6 +82,7 @@ export default function Questao({ navigation, route }) {
           },
         }
       );
+      setDialogCarregandoVisible(false);
       if (!isUltimaQuestao) {
         if (response.data === null) {
           setNaoTemQuestao(true);
@@ -392,6 +395,26 @@ export default function Questao({ navigation, route }) {
             </View>
           </View>
         </Dialog>
+        <Dialog
+                  visible={dialogCarregandoVisible}
+                  onDismiss={() => {}}
+                  dismissable={false}
+                  style={styles.dialog}
+                >
+                  <View style={styles.dialogContent}>
+                      <Text style={styles.dialogText}>Carregando...</Text>
+                    <View
+                      style={{
+                        flexDirection: "row",
+                        justifyContent: "center",
+                        alignItems: "center",
+                        gap: 5,
+                      }}
+                    >
+                        <ActivityIndicator size={30} color="#6446db" />
+                    </View>
+                  </View>
+                </Dialog>
       </Portal>
     </View>
   );
@@ -451,7 +474,7 @@ const styles = StyleSheet.create({
     width: "100%",
     justifyContent: "center",
     alignItems: "center",
-    marginTop: 15 //vai afetar o pedro?
+    marginTop: 15
   },
   dialog: {
     backgroundColor: "#6446DB",

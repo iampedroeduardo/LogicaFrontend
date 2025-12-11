@@ -16,12 +16,14 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 export default function Entrar({ navigation }) {
   async function usuarioEntrar() {
     if (CampoPreenchido()) {
+      setDialogVisible(true);
       instance
         .post("/entrar", {
           usuario: usuario.trim(),
           senha: senha,
         })
         .then(async (response) => {
+          setDialogVisible(false);
           await AsyncStorage.setItem("usuario", JSON.stringify(response.data));
           if (Platform.OS === "web") {
             navigation.navigate("CadastroAtividade");
@@ -30,6 +32,7 @@ export default function Entrar({ navigation }) {
           }
         })
         .catch((error) => {
+          setDialogVisible(false);
           if (error.response.data.error) {
             if (error.response.data.error == "senha") {
               setErroSenha("Senha incorreta");
@@ -50,6 +53,7 @@ export default function Entrar({ navigation }) {
   const [showSenha, setShowSenha] = useState(false);
   const [erroSenha, setErroSenha] = useState("");
   const [erroUsuario, setErroUsuario] = useState("");
+  const [dialogVisible, setDialogVisible] = useState(false);
 
   const CampoPreenchido = () => {
     return usuario.trim().length > 0 && senha.trim().length > 0;
@@ -148,6 +152,28 @@ export default function Entrar({ navigation }) {
           </Button>
         </View>
       </View>
+      <Portal>
+        <Dialog
+          visible={dialogVisible}
+          onDismiss={() => {}}
+          dismissable={false}
+          style={styles.dialog}
+        >
+          <View style={styles.dialogContent}>
+              <Text style={styles.dialogText}>Entrando...</Text>
+            <View
+              style={{
+                flexDirection: "row",
+                justifyContent: "center",
+                alignItems: "center",
+                gap: 5,
+              }}
+            >
+                <ActivityIndicator size={30} color="#6446db" />
+            </View>
+          </View>
+        </Dialog>
+      </Portal>
     </View>
   );
 }
@@ -189,5 +215,41 @@ const styles = StyleSheet.create({
   },
   underlined: {
     textDecorationLine: "underline",
+  },
+  dialog: {
+    backgroundColor: "#6446DB",
+    alignSelf: "center",
+    justifyContent: "center",
+    // alignItems: "center",
+    borderRadius: 15,
+    width: 280,
+    height: 280,
+    paddingHorizontal: 10,
+    paddingBottom: 25,
+  },
+  dialogContent: {
+    backgroundColor: "white",
+    width: "100%",
+    height: "100%",
+    borderRadius: 15,
+    display: "flex",
+    flexDirection: "column",
+    justifyContent: "center",
+    alignItems: "center",
+    gap: 20,
+    padding: 15,
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
+  },
+  dialogText: {
+    fontSize: 18,
+    textAlign: "center",
+    fontWeight: "bold",
   },
 });
