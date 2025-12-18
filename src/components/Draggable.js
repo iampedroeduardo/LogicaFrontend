@@ -8,6 +8,7 @@ export default function Draggable({
   height,
   espacos,
   updateEspaco,
+  setEspacoEmFoco,
 }) {
   // Posição inicial (salva para voltar depois se necessário)
   const startPosition = useRef({
@@ -20,6 +21,20 @@ export default function Draggable({
   ).current;
 
   const [isDragging, setIsDragging] = useState(false);
+
+  // Função para verificar a interseção de dois retângulos com uma margem
+  const checkProximity = (rect1, rect2, proximity = 20) => {
+    // rect1: draggable, rect2: espaco
+    return (
+      rect1.x < rect2.x + rect2.width + proximity &&
+      rect1.x + rect1.width > rect2.x - proximity &&
+      rect1.y < rect2.y + rect2.height + proximity &&
+      rect1.y + rect1.height > rect2.y - proximity
+    );
+  };
+
+  const draggableWidth = lacuna.width || 100;
+  const draggableHeight = lacuna.height || 30;
 
   const panResponder = useMemo(
     () =>
@@ -36,49 +51,56 @@ export default function Draggable({
         },
 
         onPanResponderMove: (e, gestureState) => {
-          let newX = gestureState.dx + pan.x._offset;
-          let newY = gestureState.dy + pan.y._offset;
+          // Atualiza a posição do draggable
+          pan.setValue({ x: gestureState.dx, y: gestureState.dy });
 
-          const MIN_X = 10;
-          const MAX_X = width - 100;
-          const MIN_Y = 10;
-          const MAX_Y = height - 30;
+          // Posição atual do draggable
+          const currentDraggableRect = {
+            x: pan.x._value + pan.x._offset,
+            y: pan.y._value + pan.y._offset,
+            width: draggableWidth,
+            height: draggableHeight,
+          };
 
-          newX = Math.max(MIN_X, Math.min(newX, MAX_X));
-          newY = Math.max(MIN_Y, Math.min(newY, MAX_Y));
-
-          pan.setValue({
-            x: newX - pan.x._offset,
-            y: newY - pan.y._offset,
-          });
+          // Verifica proximidade com os espaços
+          let espacoProximo = null;
+          for (const espaco of espacos) {
+            if (checkProximity(currentDraggableRect, espaco)) {
+              espacoProximo = espaco;
+              break;
+            }
+          }
+          setEspacoEmFoco(espacoProximo ? espacoProximo.id : null);
         },
 
         onPanResponderRelease: () => {
           setIsDragging(false);
           pan.flattenOffset();
+          setEspacoEmFoco(null); // Limpa o foco ao soltar
 
-          // Verifica se soltou dentro de algum espaço
+          // Posição final do draggable
+          const finalDraggableRect = {
+            x: pan.x._value,
+            y: pan.y._value,
+            width: draggableWidth,
+            height: draggableHeight,
+          };
+
+          // Verifica se soltou próximo a algum espaço
           let espacoEncontrado = null;
           for (const espaco of espacos) {
-            if (
-              pan.x._value >= espaco.x &&
-              pan.x._value <= espaco.x + espaco.width &&
-              pan.y._value >= espaco.y &&
-              pan.y._value <= espaco.y + espaco.height
-            ) {
+            if (checkProximity(finalDraggableRect, espaco)) {
               espacoEncontrado = espaco;
               break;
             }
           }
 
           if (espacoEncontrado) {
-            //salva o chute
+            // Salva o chute no espaço
             updateEspaco({ ...espacoEncontrado, chute: lacuna });
-            // esconde
+            // Esconde o draggable
             updateLacuna({
               ...lacuna,
-              x: startPosition.x,
-              y: startPosition.y,
               visible: false,
             });
           } else { //volta pra opsição inicial 
@@ -89,7 +111,7 @@ export default function Draggable({
           }
         },
       }),
-    [lacuna, width, height, espacos]
+    [lacuna, espacos] // Dependências otimizadas
   );
 
   return (
@@ -97,7 +119,11 @@ export default function Draggable({
       style={[
         styles.draggable,
         pan.getLayout(),
-        isDragging && { zIndex: 1000 },
+        {
+          width: draggableWidth,
+          height: draggableHeight,
+        },
+        isDragging && styles.dragging,
         { display: lacuna.visible ? "flex" : "none" },
       ]}
       {...panResponder.panHandlers}
@@ -117,7 +143,13 @@ const styles = StyleSheet.create({
     position: "absolute",
     backgroundColor: "#6446DB",
     borderRadius: 10,
-    paddingVertical: 5,
-    paddingHorizontal: 10,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  dragging: {
+    zIndex: 1000,
+    elevation: 10,
+    opacity: 0.8,
+    transform: [{ scale: 1.1 }],
   },
 });

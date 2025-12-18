@@ -51,7 +51,7 @@ export default function Home({ navigation }) {
   const renderScene = BottomNavigation.SceneMap({
     inicio: () => <Inicio navigation={navigation} usuario={usuario} />,
     ranking: () => <Ranking navigation={navigation} usuario={usuario} />,
-    perfil: () => <Perfil navigation={navigation} usuario={usuario} />,
+    perfil: () => <Perfil navigation={navigation} />,
   });
 
   return (

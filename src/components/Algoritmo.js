@@ -17,6 +17,7 @@ export default function Algoritmo({
   const [espacoLacunasState, setEspacoLacunasState] = useState({
     position: { x: 0, y: 0, width: 0, height: 0 },
   });
+  const [espacoEmFoco, setEspacoEmFoco] = useState(null);
   
   const [opcoesLacuna, setOpcoesLacuna] = useState([]);
 
@@ -82,13 +83,13 @@ export default function Algoritmo({
             <Text
               style={[
                 styles.texto,
-                respondida && espaco.id === questao.espacoErrado.id // Se respondida e este é o erro correto
+                respondida && espaco.id === questao.espacoErrado.id 
                   ? styles.highlightRight
-                  : opcaoSelecionada != null && // Se há uma opção selecionada...
-                    !respondida && // ...e ainda não foi respondida...
-                    opcaoSelecionada.id === espaco.id // ...e é a opção atual
-                  ? styles.highlightSelect // -> Estilo de seleção
-                  : opcaoSelecionada != null && // Se há uma opção selecionada...
+                  : opcaoSelecionada != null &&
+                    !respondida &&
+                    opcaoSelecionada.id === espaco.id
+                  ? styles.highlightSelect
+                  : opcaoSelecionada != null &&
                     respondida && // ...e já foi respondida...
                     opcaoSelecionada.id === espaco.id && // ...e é a opção atual...
                     opcaoSelecionada.id !== questao.espacoErrado.id // ...mas não é o erro correto
@@ -109,7 +110,9 @@ export default function Algoritmo({
             key={`espaco-${espaco.id}`}
             style={
               !espaco.chute
-                ? styles.lacunaVazia
+                ? espacoEmFoco === espaco.id
+                  ? styles.lacunaFoco
+                  : styles.lacunaVazia
                 : !respondida
                 ? styles.highlightSelect
                 : espaco.chute.id === espaco.id
@@ -216,7 +219,7 @@ export default function Algoritmo({
         {linha}
       </View>
     ));
-  }, [questao, opcaoSelecionada, respondida, espacos]); // Adicionado `espacos` às dependências
+  }, [questao, opcaoSelecionada, respondida, espacos, espacoEmFoco]); // Adicionado `espacos` e `espacoEmFoco` às dependências
 
   useEffect(() => {
     let newEspacos = [];
@@ -279,13 +282,13 @@ export default function Algoritmo({
 
     opcoesEmbaralhadas.forEach((opcao) => {
       // Calcula a largura da opção com base no texto, com um mínimo e um máximo.
-      const paddingHorizontal = 10; // 10 de cada lado
-      const charWidth = 10; // Largura média de um caractere com fonte monoespaçada
+      const paddingHorizontal = 20; // 10 de cada lado
+      const charWidth = 9; // Largura média de um caractere com a fonte usada
       const opcaoWidth = Math.max(
         60,
-        Math.min(200, opcao.text.length * charWidth + paddingHorizontal)
+        Math.min(200, opcao.text.length * charWidth + paddingHorizontal * 2)
       );
-      const opcaoHeight = 15; // Altura estimada de uma opção
+      const opcaoHeight = 30; // Altura corrigida para a opção
       let positionFound = false;
       let newX = margin,
         newY = espacoLacunasState.y + margin;
@@ -392,6 +395,7 @@ export default function Algoritmo({
                 height={state.height}
                 espacos={espacos}
                 updateEspaco={updateEspaco}
+                setEspacoEmFoco={setEspacoEmFoco}
               />
             ))}
           </View>
@@ -492,6 +496,16 @@ const styles = StyleSheet.create({
     paddingHorizontal: 2,
     paddingVertical: 2,
     borderRadius: 10,
+    width: 50,
+    height: 30,
+  },
+  lacunaFoco: {
+    borderWidth: 2,
+    borderColor: "#6446DB",
+    backgroundColor: "#e0d9ff",
+    borderRadius: 10,
+    paddingHorizontal: 2,
+    paddingVertical: 2,
     width: 50,
     height: 30,
   },

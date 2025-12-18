@@ -8,10 +8,11 @@ import {
   View,
   Platform,
 } from "react-native";
-import { Button, HelperText } from "react-native-paper";
+import { Button, HelperText, Portal, Dialog, ActivityIndicator} from "react-native-paper";
 import instance from "../axios.js";
 import Logo from "../components/Logo.js";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+
 
 export default function Entrar({ navigation }) {
   async function usuarioEntrar() {

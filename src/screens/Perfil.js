@@ -1,14 +1,16 @@
 import FontAwesome5 from "@expo/vector-icons/FontAwesome5";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { LinearGradient } from "expo-linear-gradient";
+import { useFocusEffect } from "@react-navigation/native";
+import React, { useEffect, useState } from "react";
 import { Image, Pressable, StyleSheet, Text, View } from "react-native";
-import { Icon, Portal, Dialog, Button } from "react-native-paper";
+import { ActivityIndicator, Button, Dialog, Icon, Portal } from "react-native-paper";
 import Logo from "../components/Logo";
-import { useEffect, useState } from "react";
 import instance from "../axios";
 
 const imagensPerfil = {
   preto_none: require("../../assets/images/perfil_preto_none.png"),
+  preto_bone: require("../../assets/images/perfil_preto_bone.png"),
   preto_coroa: require("../../assets/images/perfil_preto_coroa.png"),
   preto_tiara: require("../../assets/images/perfil_preto_tiara.png"),
   preto_cartola: require("../../assets/images/perfil_preto_cartola.png"),
@@ -16,6 +18,7 @@ const imagensPerfil = {
   preto_squirtle: require("../../assets/images/perfil_preto_squirtle.png"),
   preto_palhaco: require("../../assets/images/perfil_preto_palhaco.png"),
   amarelo_none: require("../../assets/images/perfil_amarelo_none.png"),
+  amarelo_bone: require("../../assets/images/perfil_amarelo_bone.png"),
   amarelo_coroa: require("../../assets/images/perfil_amarelo_coroa.png"),
   amarelo_tiara: require("../../assets/images/perfil_amarelo_tiara.png"),
   amarelo_cartola: require("../../assets/images/perfil_amarelo_cartola.png"),
@@ -23,6 +26,7 @@ const imagensPerfil = {
   amarelo_squirtle: require("../../assets/images/perfil_amarelo_squirtle.png"),
   amarelo_palhaco: require("../../assets/images/perfil_amarelo_palhaco.png"),
   azul_none: require("../../assets/images/perfil_azul_none.png"),
+  azul_bone: require("../../assets/images/perfil_azul_bone.png"),
   azul_coroa: require("../../assets/images/perfil_azul_coroa.png"),
   azul_tiara: require("../../assets/images/perfil_azul_tiara.png"),
   azul_cartola: require("../../assets/images/perfil_azul_cartola.png"),
@@ -30,6 +34,7 @@ const imagensPerfil = {
   azul_squirtle: require("../../assets/images/perfil_azul_squirtle.png"),
   azul_palhaco: require("../../assets/images/perfil_azul_palhaco.png"),
   rosa_none: require("../../assets/images/perfil_rosa_none.png"),
+  rosa_bone: require("../../assets/images/perfil_rosa_bone.png"),
   rosa_coroa: require("../../assets/images/perfil_rosa_coroa.png"),
   rosa_tiara: require("../../assets/images/perfil_rosa_tiara.png"),
   rosa_cartola: require("../../assets/images/perfil_rosa_cartola.png"),
@@ -38,14 +43,33 @@ const imagensPerfil = {
   rosa_palhaco: require("../../assets/images/perfil_rosa_palhaco.png"),
 };
 
-export default function Perfil({ navigation, usuario }) {
+export default function Perfil({ navigation }) {
+  const [usuario, setUsuario] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useFocusEffect(
+    React.useCallback(() => {
+      const buscarUsuario = async () => {
+        setLoading(true);
+        try {
+          const usuarioJSON = await AsyncStorage.getItem("usuario");
+          if (usuarioJSON) {
+            setUsuario(JSON.parse(usuarioJSON));
+          }
+        } catch (error) {
+          console.error("Falha ao buscar usuário do storage", error);
+        } finally {
+          setLoading(false);
+        }
+      };
+      buscarUsuario();
+    }, [])
+  );
+
   async function deslogar() {
     await AsyncStorage.removeItem("usuario");
     setVisible(false);
     navigation.navigate("PaginaInicial");
-  }
-  if (!usuario) {
-    return null;
   }
   useEffect(() => {
     async function ofensiva() {
@@ -61,13 +85,26 @@ export default function Perfil({ navigation, usuario }) {
         console.log(error);
       }
     }
-    ofensiva();
-  }, []);
-  const imagemKey = `${usuario.cor.toLowerCase()}_${usuario.acessorio.toLowerCase()}`;
-  const imagemSource = imagensPerfil[imagemKey] || imagensPerfil["preto_none"]; // Imagem padrão
+    if (usuario) {
+      ofensiva();
+    }
+  }, [usuario]);
+
   const [visible, setVisible] = useState(false);
   const [ofensiva, setOfensiva] = useState(0);
   const [recordeOfensiva, setRecordeOfensiva] = useState(0);
+
+  if (loading || !usuario) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="#6446db" />
+      </View>
+    );
+  }
+
+  const imagemKey = `${usuario.cor.toLowerCase()}_${usuario.acessorio.toLowerCase()}`;
+  const imagemSource = imagensPerfil[imagemKey] || imagensPerfil["preto_none"]; // Imagem padrão
+
   return (
     <View style={styles.container}>
       <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
@@ -343,5 +380,11 @@ const styles = StyleSheet.create({
     paddingVertical: 3,
     width: "fit-content",
     fontSize: 15,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "#EEEEEE",
   },
 });

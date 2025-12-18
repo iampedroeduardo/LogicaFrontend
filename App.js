@@ -10,7 +10,6 @@ import CadastroAtividade from "./src/screens/CadastroAtividade";
 import Entrar from "./src/screens/Entrar";
 import Home from "./src/screens/Home";
 import PaginaInicial from "./src/screens/PaginaInicial";
-import Teste from "./src/screens/Teste";
 import Questao from "./src/screens/Questao";
 import { Platform } from "react-native";
 import RecuperacaoSenha from "./src/screens/RecuperacaoSenha";
@@ -61,9 +60,6 @@ export default function AppNavigator() {
         <Stack.Navigator
           initialRouteName={usuario != null ? Platform.OS === "web" ? "CadastroAtividade" : "Home" : "PaginaInicial"}
         >
-        {/* <Stack.Navigator
-          initialRouteName={usuario != null ? "Home" : "PaginaInicial"}
-        > */}
           <Stack.Screen
             name="PaginaInicial"
             component={PaginaInicial}
@@ -82,11 +78,6 @@ export default function AppNavigator() {
           <Stack.Screen
             name="Home"
             component={Home}
-            options={{ headerShown: false }}
-          />
-          <Stack.Screen
-            name="Teste"
-            component={Teste}
             options={{ headerShown: false }}
           />
           <Stack.Screen
