@@ -1,53 +1,53 @@
-# Frontend – Lógica++
+# Lógica++ · Front-end
 
-Aplicativo frontend do projeto **Lógica++**, desenvolvido com **Expo** e **React Native**, compatível com Android, iOS e Web.
+Aplicativo móvel e plataforma web do **Lógica++**, um app gamificado para praticar lógica de programação e raciocínio lógico, inspirado na ideia de praticar um pouco todo dia. Desenvolvido como Trabalho de Conclusão do curso Técnico em Informática para Internet do IFRS Campus Rio Grande (2025).
 
----
+Um único código em React Native com Expo roda como **app no Android e no iOS** e como **plataforma web** para cadastro de questões.
 
-## 🛠 Tecnologias
+> Back-end (API REST): [LogicaBackend](https://github.com/iampedroeduardo/LogicaBackend)
 
-* Expo
-* React Native
-* JavaScript
 
----
+## Funcionalidades
 
-## 📁 Estrutura (resumida)
+**Aplicativo**
+- Trilhas de exercícios aleatórias ou por categoria, com três tipos de questão: múltipla escolha, "Complete o código" e "Encontre o erro"
+- XP, níveis e ranks ligados a cada conteúdo, de raciocínio lógico até funções e códigos avançados
+- Ranking entre usuários, ofensiva de dias seguidos e animações de subida de rank e perda de XP
+- Avatar personalizável com cores e acessórios desbloqueados conforme o progresso
+- Cadastro com validação de e-mail, login e recuperação de senha por código
 
-```
-frontend/
-├─ app.json
-├─ App.js
-└─ package.json
-```
+**Plataforma web**
+- Área de trabalho com **janelas arrastáveis**, em que cada janela é uma questão sendo criada ou editada
+- **Editor de código** com destaque de sintaxe, em que o usuário seleciona trechos para marcar como erro ou lacuna e cadastra as alternativas erradas
+- Cadastro de questões de múltipla escolha com texto ou imagem e gabarito comentado
+- "Minhas questões", com filtros por status. Administradores veem e aprovam as questões pendentes
 
----
+## Tecnologias
 
-## ▶️ Executando o Aplicativo
+![React Native](https://img.shields.io/badge/React_Native-20232A?style=flat&logo=react&logoColor=61DAFB)
+![Expo](https://img.shields.io/badge/Expo_54-000020?style=flat&logo=expo&logoColor=white)
+![JavaScript](https://img.shields.io/badge/JavaScript-F7DF1E?style=flat&logo=javascript&logoColor=black)
+![Figma](https://img.shields.io/badge/Figma-F24E1E?style=flat&logo=figma&logoColor=white)
 
-Na raiz do projeto frontend, execute:
+- **React Native 0.81 + React 19 + Expo 54**, com um código para Android, iOS e web
+- **React Navigation** e **React Native Paper** para navegação e componentes
+- **Animated API** do React Native para as animações de progresso
+- Componente próprio de **janelas arrastáveis**, feito com `PanResponder` e `Animated`
+- **CodeMirror** para o editor de código da plataforma web
+- **Axios** para consumir a API, com a sessão do usuário salva no **AsyncStorage**
+- Interface prototipada no **Figma** antes da implementação
+
+## Como rodar
+
+**Pré-requisitos:** Node.js 18+, o app **Expo Go** no celular e o [back-end](https://github.com/iampedroeduardo/LogicaBackend) rodando.
 
 ```bash
-npx expo start --tunnel
+git clone https://github.com/iampedroeduardo/LogicaFrontend.git
+cd LogicaFrontend
+npm install
 ```
 
----
-
-## 📲 Testes
-
-* Um **QR Code** será exibido no terminal
-* Escaneie com o aplicativo **Expo Go** no celular
-* Para abrir a versão web, pressione:
-
-```text
-w
-```
-
----
-
-## 🔗 Configuração da API
-
-No arquivo `app.json`, configure a URL pública do backend (Cloudflare):
+No `app.json`, aponte para a URL da API (a mesma do `SERVER_URL` do back-end):
 
 ```json
 {
@@ -59,15 +59,17 @@ No arquivo `app.json`, configure a URL pública do backend (Cloudflare):
 }
 ```
 
-Essa URL deve ser a mesma configurada na variável `SERVER_URL` do backend.
+Inicie o projeto:
 
----
+```bash
+npx expo start --tunnel
+```
 
-## ⚠️ Observações Importantes
+Escaneie o QR Code com o Expo Go para abrir o app, ou pressione `w` no terminal para abrir a plataforma web.
 
-* O backend precisa estar rodando para o app funcionar corretamente
-* Para testes fora da rede local, o **Cloudflare Tunnel** é obrigatório
+## Autores
 
----
+- **Pedro Eduardo dos Santos** · [@iampedroeduardo](https://github.com/iampedroeduardo)
+- **Jéssica Villas Bôas** · [@JVillasBoas](https://github.com/JVillasBoas)
 
-🚀 Frontend desenvolvido com Expo e React Native
+Orientação: Profª Drª Raquel de Miranda Barbosa · IFRS Campus Rio Grande
